@@ -1,0 +1,233 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  tasks         Task[]
+  projects      Project[]
+  goals         Goal[]
+  habits        Habit[]
+  habitLogs     HabitLog[]
+  weeklyReviews WeeklyReview[]
+  metrics       Metric[]
+  
+  @@map("users")
+}
+
+model Task {
+  id                String       @id @default(cuid())
+  userId            String
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title             String
+  notes             String?
+  dueDate           DateTime?
+  estimatedMinutes  Int?
+  
+  priority          Int          @default(3)
+  impact            Int          @default(3)
+  energyLevel       EnergyLevel  @default(MEDIUM)
+  context           TaskContext  @default(COMPUTER)
+  status            TaskStatus   @default(INBOX)
+  
+  projectId         String?
+  project           Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  
+  stagnationDays    Int          @default(0)
+  
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  completedAt       DateTime?
+  
+  @@index([userId, status])
+  @@index([userId, dueDate])
+  @@map("tasks")
+}
+
+model Project {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name            String
+  mission         String?
+  desiredOutcome  String?
+  nextAction      String?
+  stuckReason     String?
+  weeklyGoal      String?
+  
+  status          ProjectStatus @default(ACTIVE)
+  
+  tasks           Task[]
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@index([userId, status])
+  @@map("projects")
+}
+
+model Goal {
+  id          String     @id @default(cuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title       String
+  description String?
+  type        GoalType
+  
+  targetDate  DateTime?
+  progress    Int        @default(0)
+  status      GoalStatus @default(ACTIVE)
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  
+  @@index([userId, type])
+  @@map("goals")
+}
+
+model Habit {
+  id              String     @id @default(cuid())
+  userId          String
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name            String
+  type            HabitType
+  targetFrequency Int        @default(7)
+  unit            String     @default("times")
+  
+  logs            HabitLog[]
+  
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  
+  @@index([userId])
+  @@map("habits")
+}
+
+model HabitLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  habitId   String
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  
+  date      DateTime @default(now())
+  value     Float
+  notes     String?
+  
+  createdAt DateTime @default(now())
+  
+  @@index([userId, date])
+  @@index([habitId, date])
+  @@map("habit_logs")
+}
+
+model WeeklyReview {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  weekStart         DateTime
+  
+  wins              String[]
+  movedNeedle       String[]
+  timeSinks         String[]
+  lessons           String[]
+  nextWeekOutcomes  String[]
+  deepWorkBlocks    String[]
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([userId, weekStart])
+  @@map("weekly_reviews")
+}
+
+model Metric {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  date      DateTime
+  type      MetricType
+  value     Float
+  
+  createdAt DateTime   @default(now())
+  
+  @@index([userId, type, date])
+  @@map("metrics")
+}
+
+enum EnergyLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum TaskContext {
+  COMPUTER
+  PHONE
+  OUTSIDE
+}
+
+enum TaskStatus {
+  INBOX
+  TODO
+  IN_PROGRESS
+  DONE
+  WAITING
+}
+
+enum ProjectStatus {
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  ARCHIVED
+}
+
+enum GoalType {
+  NORTH_STAR
+  QUARTERLY
+  WEEKLY
+}
+
+enum GoalStatus {
+  ACTIVE
+  COMPLETED
+  ABANDONED
+}
+
+enum HabitType {
+  SLEEP
+  EXERCISE
+  DEEP_WORK
+  READING
+  LANGUAGE
+  JOURNALING
+  SOCIAL
+  OTHER
+}
+
+enum MetricType {
+  DEEP_WORK_HOURS
+  OUTPUT_SHIPPED
+  FITNESS_SESSIONS
+  SLEEP_AVERAGE
+  RELATIONSHIPS
+  FOUNDER_MOMENTUM
+}
