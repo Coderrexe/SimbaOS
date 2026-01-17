@@ -67,11 +67,13 @@ Weekly score (0-100) based on:
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14 (App Router), React, TypeScript
-- **Styling**: TailwindCSS with custom dark theme
+- **Frontend**: Next.js 15 (App Router), React 19, TypeScript
+- **Styling**: TailwindCSS with modern glassmorphic design system
+- **Animations**: Framer Motion for complex animations and micro-interactions
+- **UI Components**: Radix UI primitives with custom styling
 - **Database**: PostgreSQL (Neon/Supabase/Railway compatible)
 - **ORM**: Prisma
-- **Auth**: NextAuth.js (Auth.js) with credentials provider
+- **Auth**: NextAuth.js with Google OAuth + credentials provider
 - **Icons**: Lucide React
 - **Charts**: Recharts
 - **Deployment**: Vercel-ready
@@ -105,6 +107,10 @@ Create a `.env` file in the root directory:
 DATABASE_URL="postgresql://user:password@localhost:5432/simbaos?schema=public"
 NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="your-secret-key-here"
+
+# Optional: Google OAuth (for "Sign in with Google")
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
 ```
 
 Generate a secure `NEXTAUTH_SECRET`:
@@ -112,6 +118,8 @@ Generate a secure `NEXTAUTH_SECRET`:
 ```bash
 openssl rand -base64 32
 ```
+
+**Google OAuth Setup** (Optional): See [GOOGLE_OAUTH_SETUP.md](./GOOGLE_OAUTH_SETUP.md) for detailed instructions on setting up Google Sign-In. You can skip this and use email/password authentication instead.
 
 4. **Set up the database**
 
