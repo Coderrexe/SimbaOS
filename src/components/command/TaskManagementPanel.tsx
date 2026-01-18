@@ -715,7 +715,7 @@ export function TaskManagementPanel({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={() => setSelectedTask(null)}
           >
             <motion.div
@@ -724,7 +724,7 @@ export function TaskManagementPanel({
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative overflow-hidden rounded-[var(--radius-lg)] p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto"
+              className="relative overflow-hidden rounded-[var(--radius-lg)] p-6 w-full max-h-[500px] overflow-y-auto"
               style={{
                 background:
                   "linear-gradient(135deg, hsl(var(--surface1)) 0%, hsl(var(--surface2)) 100%)",
@@ -829,7 +829,10 @@ export function TaskManagementPanel({
                   {selectedTask.status !== "DONE" ? (
                     <motion.button
                       onClick={() => {
-                        handleToggleComplete(selectedTask.id);
+                        handleToggleComplete(
+                          selectedTask.id,
+                          selectedTask.status,
+                        );
                         setSelectedTask(null);
                       }}
                       className="flex-1 px-4 py-2.5 rounded-[var(--radius)] bg-[hsl(var(--success))] text-white font-medium shadow-lg shadow-[hsl(var(--success)/0.3)] hover:opacity-90 transition-all"
@@ -842,7 +845,10 @@ export function TaskManagementPanel({
                   ) : (
                     <motion.button
                       onClick={() => {
-                        handleToggleComplete(selectedTask.id);
+                        handleToggleComplete(
+                          selectedTask.id,
+                          selectedTask.status,
+                        );
                         setSelectedTask(null);
                       }}
                       className="flex-1 px-4 py-2.5 rounded-[var(--radius)] surface-2 hover:surface-3 font-medium transition-all"

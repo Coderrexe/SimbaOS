@@ -33,7 +33,7 @@ export const Panel = React.forwardRef<HTMLDivElement, PanelProps>(
         glass={glass}
         glow={glow}
         className={cn(
-          "p-[var(--space-4)] lift-on-hover",
+          "relative p-[var(--space-4)] lift-on-hover",
           selected && "selected",
           className,
         )}
