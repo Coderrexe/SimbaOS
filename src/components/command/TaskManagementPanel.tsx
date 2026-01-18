@@ -10,7 +10,8 @@ import {
   Edit2,
   Calendar,
   AlertCircle,
-  ChevronDown,
+  Sparkles,
+  Trash2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -39,9 +40,10 @@ export function TaskManagementPanel({
   const [tasks, setTasks] = React.useState<Task[]>(initialTasks);
   const [sortBy, setSortBy] = React.useState<SortOption>("urgency");
   const [editingId, setEditingId] = React.useState<string | null>(null);
-  const [editTitle, setEditTitle] = React.useState("");
+  const [editData, setEditData] = React.useState({ title: "", dueDate: "" });
   const [showNewTaskForm, setShowNewTaskForm] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [completingId, setCompletingId] = React.useState<string | null>(null);
   const [newTask, setNewTask] = React.useState({
     title: "",
     dueDate: "",
@@ -49,7 +51,6 @@ export function TaskManagementPanel({
     impact: 3,
   });
 
-  // Calculate urgency score based on due date and priority
   const getUrgencyScore = (task: Task) => {
     if (!task.dueDate) return task.priority * 10;
 
@@ -60,20 +61,15 @@ export function TaskManagementPanel({
     );
 
     let urgency = task.priority * 10;
-    if (daysUntil < 0)
-      urgency += 100; // Overdue
-    else if (daysUntil === 0)
-      urgency += 80; // Due today
-    else if (daysUntil === 1)
-      urgency += 60; // Due tomorrow
-    else if (daysUntil <= 3)
-      urgency += 40; // Due within 3 days
-    else if (daysUntil <= 7) urgency += 20; // Due within a week
+    if (daysUntil < 0) urgency += 100;
+    else if (daysUntil === 0) urgency += 80;
+    else if (daysUntil === 1) urgency += 60;
+    else if (daysUntil <= 3) urgency += 40;
+    else if (daysUntil <= 7) urgency += 20;
 
     return urgency;
   };
 
-  // Sort tasks based on selected option
   const sortedTasks = React.useMemo(() => {
     const activeTasks = tasks.filter((t) => t.status !== "DONE");
 
@@ -96,6 +92,7 @@ export function TaskManagementPanel({
     currentStatus: string,
   ) => {
     const newStatus = currentStatus === "DONE" ? "TODO" : "DONE";
+    setCompletingId(taskId);
 
     try {
       const response = await fetch(`/api/tasks/${taskId}`, {
@@ -106,26 +103,39 @@ export function TaskManagementPanel({
 
       if (response.ok) {
         const updatedTask = await response.json();
-        setTasks(tasks.map((t) => (t.id === taskId ? updatedTask : t)));
+
+        setTimeout(() => {
+          setTasks(tasks.map((t) => (t.id === taskId ? updatedTask : t)));
+          setCompletingId(null);
+        }, 600);
       }
     } catch (error) {
       console.error("Error updating task:", error);
+      setCompletingId(null);
     }
   };
 
   const handleStartEdit = (task: Task) => {
     setEditingId(task.id);
-    setEditTitle(task.title);
+    setEditData({
+      title: task.title,
+      dueDate: task.dueDate
+        ? new Date(task.dueDate).toISOString().split("T")[0]
+        : "",
+    });
   };
 
   const handleSaveEdit = async (taskId: string) => {
-    if (!editTitle.trim()) return;
+    if (!editData.title.trim()) return;
 
     try {
       const response = await fetch(`/api/tasks/${taskId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: editTitle }),
+        body: JSON.stringify({
+          title: editData.title,
+          dueDate: editData.dueDate || null,
+        }),
       });
 
       if (response.ok) {
@@ -140,7 +150,7 @@ export function TaskManagementPanel({
 
   const handleCancelEdit = () => {
     setEditingId(null);
-    setEditTitle("");
+    setEditData({ title: "", dueDate: "" });
   };
 
   const handleCreateTask = async (e: React.FormEvent) => {
@@ -165,7 +175,7 @@ export function TaskManagementPanel({
 
       if (response.ok) {
         const createdTask = await response.json();
-        setTasks([...tasks, createdTask]);
+        setTasks([createdTask, ...tasks]);
         setNewTask({ title: "", dueDate: "", priority: 3, impact: 3 });
         setShowNewTaskForm(false);
         setError(null);
@@ -208,91 +218,103 @@ export function TaskManagementPanel({
       subtitle={`${sortedTasks.length} active tasks`}
     >
       <div className="space-y-4">
-        {/* Sort Options */}
+        {/* Sort Options & New Task Button */}
         <div className="flex items-center justify-between">
           <div className="flex gap-2">
-            <button
-              onClick={() => setSortBy("urgency")}
-              className={`px-3 py-1.5 rounded-[var(--radius)] text-xs font-medium transition-all ${
-                sortBy === "urgency"
-                  ? "bg-[hsl(var(--accent))] text-white"
-                  : "surface-2 hover:surface-3"
-              }`}
-            >
-              Urgency
-            </button>
-            <button
-              onClick={() => setSortBy("dueDate")}
-              className={`px-3 py-1.5 rounded-[var(--radius)] text-xs font-medium transition-all ${
-                sortBy === "dueDate"
-                  ? "bg-[hsl(var(--accent))] text-white"
-                  : "surface-2 hover:surface-3"
-              }`}
-            >
-              Due Date
-            </button>
-            <button
-              onClick={() => setSortBy("priority")}
-              className={`px-3 py-1.5 rounded-[var(--radius)] text-xs font-medium transition-all ${
-                sortBy === "priority"
-                  ? "bg-[hsl(var(--accent))] text-white"
-                  : "surface-2 hover:surface-3"
-              }`}
-            >
-              Priority
-            </button>
+            {(["urgency", "dueDate", "priority"] as SortOption[]).map(
+              (option) => (
+                <motion.button
+                  key={option}
+                  onClick={() => setSortBy(option)}
+                  className={`px-3 py-1.5 rounded-[var(--radius)] text-xs font-medium transition-all ${
+                    sortBy === option
+                      ? "bg-[hsl(var(--accent))] text-white shadow-lg shadow-[hsl(var(--accent)/0.3)]"
+                      : "surface-2 hover:surface-3"
+                  }`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {option === "urgency"
+                    ? "Urgency"
+                    : option === "dueDate"
+                      ? "Due Date"
+                      : "Priority"}
+                </motion.button>
+              ),
+            )}
           </div>
 
-          <button
+          <motion.button
             onClick={() => setShowNewTaskForm(!showNewTaskForm)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius)] bg-[hsl(var(--accent))] text-white hover:opacity-90 transition-opacity text-xs font-medium"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius)] bg-gradient-to-r from-[hsl(var(--accent))] to-[hsl(var(--accent-secondary))] text-white hover:opacity-90 transition-opacity text-xs font-medium shadow-lg shadow-[hsl(var(--accent)/0.3)]"
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
           >
             <Plus className="h-3.5 w-3.5" />
             New Task
-          </button>
+          </motion.button>
         </div>
 
         {/* Error Message */}
-        {error && (
-          <div className="p-3 rounded-[var(--radius-lg)] bg-[hsl(var(--danger)/0.1)] border border-[hsl(var(--danger))] text-[hsl(var(--danger))] text-sm">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 flex-shrink-0" />
-              <div>
-                <p className="font-medium">{error}</p>
-                {error.includes("sign") && (
-                  <p className="text-xs mt-1">
-                    Please sign out and sign back in to continue.
-                  </p>
-                )}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, y: -10 }}
+              animate={{ opacity: 1, height: "auto", y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -10 }}
+              className="p-3 rounded-[var(--radius-lg)] bg-[hsl(var(--danger)/0.1)] border border-[hsl(var(--danger))] text-[hsl(var(--danger))] text-sm overflow-hidden"
+            >
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                <div>
+                  <p className="font-medium">{error}</p>
+                  {error.includes("sign") && (
+                    <p className="text-xs mt-1">
+                      Please sign out and sign back in to continue.
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* New Task Form */}
         <AnimatePresence>
           {showNewTaskForm && (
             <motion.form
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
+              initial={{ opacity: 0, height: 0, scale: 0.95 }}
+              animate={{ opacity: 1, height: "auto", scale: 1 }}
+              exit={{ opacity: 0, height: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
               onSubmit={handleCreateTask}
-              className="p-4 rounded-[var(--radius-lg)] surface-2 space-y-3"
+              className="p-4 rounded-[var(--radius-lg)] surface-2 space-y-3 border border-[hsl(var(--accent)/0.2)] shadow-xl overflow-hidden"
             >
-              <input
-                type="text"
-                value={newTask.title}
-                onChange={(e) =>
-                  setNewTask({ ...newTask, title: e.target.value })
-                }
-                placeholder="Task title..."
-                className="w-full px-3 py-2 rounded-[var(--radius)] bg-[hsl(var(--background))] border border-[hsl(var(--border))] focus:border-[hsl(var(--accent))] outline-none text-sm"
-                autoFocus
-              />
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.1 }}
+              >
+                <input
+                  type="text"
+                  value={newTask.title}
+                  onChange={(e) =>
+                    setNewTask({ ...newTask, title: e.target.value })
+                  }
+                  placeholder="What needs to be done?"
+                  className="w-full px-3 py-2 rounded-[var(--radius)] bg-[hsl(var(--background))] border border-[hsl(var(--border))] focus:border-[hsl(var(--accent))] focus:ring-2 focus:ring-[hsl(var(--accent)/0.2)] outline-none text-sm transition-all"
+                  autoFocus
+                />
+              </motion.div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.15 }}
+                className="grid grid-cols-2 gap-3"
+              >
                 <div>
-                  <label className="text-xs text-muted mb-1 block">
+                  <label className="text-xs text-muted mb-1 block font-medium">
                     Due Date
                   </label>
                   <input
@@ -301,12 +323,12 @@ export function TaskManagementPanel({
                     onChange={(e) =>
                       setNewTask({ ...newTask, dueDate: e.target.value })
                     }
-                    className="w-full px-3 py-2 rounded-[var(--radius)] bg-[hsl(var(--background))] border border-[hsl(var(--border))] focus:border-[hsl(var(--accent))] outline-none text-sm"
+                    className="w-full px-3 py-2 rounded-[var(--radius)] bg-[hsl(var(--background))] border border-[hsl(var(--border))] focus:border-[hsl(var(--accent))] focus:ring-2 focus:ring-[hsl(var(--accent)/0.2)] outline-none text-sm transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs text-muted mb-1 block">
+                  <label className="text-xs text-muted mb-1 block font-medium">
                     Priority
                   </label>
                   <select
@@ -317,7 +339,7 @@ export function TaskManagementPanel({
                         priority: parseInt(e.target.value),
                       })
                     }
-                    className="w-full px-3 py-2 rounded-[var(--radius)] bg-[hsl(var(--background))] border border-[hsl(var(--border))] focus:border-[hsl(var(--accent))] outline-none text-sm"
+                    className="w-full px-3 py-2 rounded-[var(--radius)] bg-[hsl(var(--background))] border border-[hsl(var(--border))] focus:border-[hsl(var(--accent))] focus:ring-2 focus:ring-[hsl(var(--accent)/0.2)] outline-none text-sm transition-all"
                   >
                     <option value={5}>P5 - Critical</option>
                     <option value={4}>P4 - High</option>
@@ -326,16 +348,24 @@ export function TaskManagementPanel({
                     <option value={1}>P1 - Minimal</option>
                   </select>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="flex gap-2">
-                <button
+              <motion.div
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="flex gap-2"
+              >
+                <motion.button
                   type="submit"
-                  className="flex-1 px-3 py-2 rounded-[var(--radius)] bg-[hsl(var(--accent))] text-white hover:opacity-90 transition-opacity text-sm font-medium"
+                  className="flex-1 px-3 py-2 rounded-[var(--radius)] bg-gradient-to-r from-[hsl(var(--accent))] to-[hsl(var(--accent-secondary))] text-white hover:opacity-90 transition-opacity text-sm font-medium shadow-lg shadow-[hsl(var(--accent)/0.3)]"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
+                  <Sparkles className="inline h-4 w-4 mr-2" />
                   Create Task
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   type="button"
                   onClick={() => {
                     setShowNewTaskForm(false);
@@ -347,115 +377,203 @@ export function TaskManagementPanel({
                     });
                   }}
                   className="px-3 py-2 rounded-[var(--radius)] surface-2 hover:surface-3 transition-all text-sm"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   Cancel
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
             </motion.form>
           )}
         </AnimatePresence>
 
         {/* Task List */}
-        <div className="space-y-2 max-h-[600px] overflow-y-auto">
+        <div className="space-y-2 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
           {sortedTasks.length === 0 ? (
-            <div className="text-center py-12 text-muted">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-12 text-muted"
+            >
               <AlertCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p className="mb-2">No active tasks</p>
               <p className="text-xs">Click "New Task" to get started</p>
-            </div>
+            </motion.div>
           ) : (
-            sortedTasks.map((task) => (
-              <motion.div
-                key={task.id}
-                layout
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="p-3 rounded-[var(--radius-lg)] surface-2 hover:surface-3 transition-all group"
-              >
-                <div className="flex items-start gap-3">
-                  {/* Checkbox */}
-                  <button
-                    onClick={() => handleToggleComplete(task.id, task.status)}
-                    className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
-                      task.status === "DONE"
-                        ? "bg-[hsl(var(--success))] border-[hsl(var(--success))]"
-                        : "border-[hsl(var(--border))] hover:border-[hsl(var(--accent))]"
-                    }`}
-                  >
-                    {task.status === "DONE" && (
-                      <Check className="h-3 w-3 text-white" />
-                    )}
-                  </button>
+            <AnimatePresence mode="popLayout">
+              {sortedTasks.map((task, index) => (
+                <motion.div
+                  key={task.id}
+                  layout
+                  initial={{ opacity: 0, x: -20, scale: 0.95 }}
+                  animate={{
+                    opacity: completingId === task.id ? 0.5 : 1,
+                    x: 0,
+                    scale: 1,
+                    transition: {
+                      delay: index * 0.03,
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 25,
+                    },
+                  }}
+                  exit={{
+                    opacity: 0,
+                    x: 100,
+                    scale: 0.8,
+                    transition: { duration: 0.3 },
+                  }}
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  className="p-3 rounded-[var(--radius-lg)] surface-2 hover:surface-3 transition-all group shadow-sm hover:shadow-lg border border-transparent hover:border-[hsl(var(--accent)/0.2)]"
+                >
+                  <div className="flex items-start gap-3">
+                    {/* Checkbox */}
+                    <motion.button
+                      onClick={() => handleToggleComplete(task.id, task.status)}
+                      className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                        task.status === "DONE"
+                          ? "bg-[hsl(var(--success))] border-[hsl(var(--success))] shadow-lg shadow-[hsl(var(--success)/0.3)]"
+                          : "border-[hsl(var(--border))] hover:border-[hsl(var(--accent))] hover:shadow-md"
+                      }`}
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <AnimatePresence>
+                        {task.status === "DONE" && (
+                          <motion.div
+                            initial={{ scale: 0, rotate: -180 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            exit={{ scale: 0, rotate: 180 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 500,
+                              damping: 15,
+                            }}
+                          >
+                            <Check className="h-3 w-3 text-white" />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.button>
 
-                  {/* Task Content */}
-                  <div className="flex-1 min-w-0">
-                    {editingId === task.id ? (
-                      <div className="flex gap-2 mb-2">
-                        <input
-                          type="text"
-                          value={editTitle}
-                          onChange={(e) => setEditTitle(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") handleSaveEdit(task.id);
-                            if (e.key === "Escape") handleCancelEdit();
-                          }}
-                          className="flex-1 px-2 py-1 rounded-[var(--radius)] bg-[hsl(var(--background))] border border-[hsl(var(--accent))] outline-none text-sm"
-                          autoFocus
-                        />
-                        <button
-                          onClick={() => handleSaveEdit(task.id)}
-                          className="p-1 rounded-[var(--radius)] bg-[hsl(var(--success))] text-white hover:opacity-90"
+                    {/* Task Content */}
+                    <div className="flex-1 min-w-0">
+                      {editingId === task.id ? (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="space-y-2"
                         >
-                          <Check className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={handleCancelEdit}
-                          className="p-1 rounded-[var(--radius)] surface-2 hover:surface-3"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <h4 className="text-sm font-medium group-hover:text-[hsl(var(--accent))] transition-colors">
-                          {task.title}
-                        </h4>
-                        <button
-                          onClick={() => handleStartEdit(task)}
-                          className="opacity-0 group-hover:opacity-100 p-1 rounded-[var(--radius)] hover:bg-[hsl(var(--border))] transition-all"
-                        >
-                          <Edit2 className="h-3 w-3" />
-                        </button>
-                      </div>
-                    )}
+                          <input
+                            type="text"
+                            value={editData.title}
+                            onChange={(e) =>
+                              setEditData({
+                                ...editData,
+                                title: e.target.value,
+                              })
+                            }
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleSaveEdit(task.id);
+                              if (e.key === "Escape") handleCancelEdit();
+                            }}
+                            className="w-full px-2 py-1 rounded-[var(--radius)] bg-[hsl(var(--background))] border border-[hsl(var(--accent))] focus:ring-2 focus:ring-[hsl(var(--accent)/0.2)] outline-none text-sm"
+                            autoFocus
+                          />
+                          <input
+                            type="date"
+                            value={editData.dueDate}
+                            onChange={(e) =>
+                              setEditData({
+                                ...editData,
+                                dueDate: e.target.value,
+                              })
+                            }
+                            className="w-full px-2 py-1 rounded-[var(--radius)] bg-[hsl(var(--background))] border border-[hsl(var(--border))] focus:border-[hsl(var(--accent))] focus:ring-2 focus:ring-[hsl(var(--accent)/0.2)] outline-none text-sm"
+                          />
+                          <div className="flex gap-2">
+                            <motion.button
+                              onClick={() => handleSaveEdit(task.id)}
+                              className="p-1 rounded-[var(--radius)] bg-[hsl(var(--success))] text-white hover:opacity-90 shadow-md"
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                            >
+                              <Check className="h-4 w-4" />
+                            </motion.button>
+                            <motion.button
+                              onClick={handleCancelEdit}
+                              className="p-1 rounded-[var(--radius)] surface-2 hover:surface-3"
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                            >
+                              <X className="h-4 w-4" />
+                            </motion.button>
+                          </div>
+                        </motion.div>
+                      ) : (
+                        <>
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <h4 className="text-sm font-medium group-hover:text-[hsl(var(--accent))] transition-colors">
+                              {task.title}
+                            </h4>
+                            <motion.button
+                              onClick={() => handleStartEdit(task)}
+                              className="opacity-0 group-hover:opacity-100 p-1 rounded-[var(--radius)] hover:bg-[hsl(var(--border))] transition-all"
+                              whileHover={{ scale: 1.2, rotate: 15 }}
+                              whileTap={{ scale: 0.9 }}
+                            >
+                              <Edit2 className="h-3 w-3" />
+                            </motion.button>
+                          </div>
 
-                    <div className="flex flex-wrap items-center gap-2 text-xs">
-                      {getUrgencyBadge(task)}
-                      <GlowBadge
-                        variant={task.priority >= 4 ? "danger" : "neutral"}
-                      >
-                        P{task.priority}
-                      </GlowBadge>
-                      {task.dueDate && (
-                        <span className="text-muted flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {new Date(task.dueDate).toLocaleDateString()}
-                        </span>
-                      )}
-                      {task.project && (
-                        <span className="text-muted">
-                          📁 {task.project.name}
-                        </span>
+                          <div className="flex flex-wrap items-center gap-2 text-xs">
+                            {getUrgencyBadge(task)}
+                            <GlowBadge
+                              variant={
+                                task.priority >= 4 ? "danger" : "neutral"
+                              }
+                            >
+                              P{task.priority}
+                            </GlowBadge>
+                            {task.dueDate && (
+                              <span className="text-muted flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                {new Date(task.dueDate).toLocaleDateString()}
+                              </span>
+                            )}
+                            {task.project && (
+                              <span className="text-muted">
+                                📁 {task.project.name}
+                              </span>
+                            )}
+                          </div>
+                        </>
                       )}
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            ))
+                </motion.div>
+              ))}
+            </AnimatePresence>
           )}
         </div>
       </div>
+
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: hsl(var(--surface2));
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: hsl(var(--accent) / 0.3);
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: hsl(var(--accent) / 0.5);
+        }
+      `}</style>
     </Panel>
   );
 }
