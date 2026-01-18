@@ -519,37 +519,33 @@ export function TaskManagementPanel({
 
                   <div className="flex items-start gap-3">
                     {/* Checkbox */}
-                    {!showCompleted && (
-                      <motion.button
-                        onClick={() =>
-                          handleToggleComplete(task.id, task.status)
-                        }
-                        className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
-                          task.status === "DONE"
-                            ? "bg-[hsl(var(--success))] border-[hsl(var(--success))] shadow-lg shadow-[hsl(var(--success)/0.3)]"
-                            : "border-[hsl(var(--border))] hover:border-[hsl(var(--accent))] hover:shadow-md"
-                        }`}
-                        whileHover={{ scale: 1.1, rotate: 5 }}
-                        whileTap={{ scale: 0.9 }}
-                      >
-                        <AnimatePresence>
-                          {task.status === "DONE" && (
-                            <motion.div
-                              initial={{ scale: 0, rotate: -180 }}
-                              animate={{ scale: 1, rotate: 0 }}
-                              exit={{ scale: 0, rotate: 180 }}
-                              transition={{
-                                type: "spring",
-                                stiffness: 500,
-                                damping: 15,
-                              }}
-                            >
-                              <Check className="h-3 w-3 text-white" />
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </motion.button>
-                    )}
+                    <motion.button
+                      onClick={() => handleToggleComplete(task.id, task.status)}
+                      className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                        task.status === "DONE"
+                          ? "bg-[hsl(var(--success))] border-[hsl(var(--success))] shadow-lg shadow-[hsl(var(--success)/0.3)]"
+                          : "border-[hsl(var(--border))] hover:border-[hsl(var(--accent))] hover:shadow-md"
+                      }`}
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <AnimatePresence>
+                        {task.status === "DONE" && (
+                          <motion.div
+                            initial={{ scale: 0, rotate: -180 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            exit={{ scale: 0, rotate: 180 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 500,
+                              damping: 15,
+                            }}
+                          >
+                            <Check className="h-3 w-3 text-white" />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.button>
 
                     {/* Task Content */}
                     <div className="flex-1 min-w-0">
