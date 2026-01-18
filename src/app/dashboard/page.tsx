@@ -1,32 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Sidebar } from "@/components/Sidebar";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
-import { AlertTriangle, TrendingUp, Zap, Calendar } from "lucide-react";
-import { formatDate } from "@/lib/utils";
-
-interface DashboardData {
-  nextActions: any[];
-  oneThing: any;
-  alerts: any[];
-  momentumScore: any;
-  todayTasks: any[];
-  upcomingTasks: any[];
-  weeklyGoals: any[];
-}
 
 export default function Dashboard() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
