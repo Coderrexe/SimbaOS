@@ -44,7 +44,11 @@ export function TaskManagementPanel({
   const [tasks, setTasks] = React.useState<Task[]>(initialTasks);
   const [sortBy, setSortBy] = React.useState<SortOption>("urgency");
   const [editingId, setEditingId] = React.useState<string | null>(null);
-  const [editData, setEditData] = React.useState({ title: "", dueDate: "" });
+  const [editData, setEditData] = React.useState({
+    title: "",
+    description: "",
+    dueDate: "",
+  });
   const [showNewTaskForm, setShowNewTaskForm] = React.useState(false);
   const [showCompleted, setShowCompleted] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -151,6 +155,7 @@ export function TaskManagementPanel({
     setEditingId(task.id);
     setEditData({
       title: task.title,
+      description: task.description || "",
       dueDate: task.dueDate
         ? new Date(task.dueDate).toISOString().split("T")[0]
         : "",
@@ -166,6 +171,7 @@ export function TaskManagementPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: editData.title,
+          description: editData.description || null,
           dueDate: editData.dueDate || null,
         }),
       });
@@ -182,7 +188,7 @@ export function TaskManagementPanel({
 
   const handleCancelEdit = () => {
     setEditingId(null);
-    setEditData({ title: "", dueDate: "" });
+    setEditData({ title: "", description: "", dueDate: "" });
   };
 
   const handleCreateTask = async (e: React.FormEvent) => {
@@ -600,6 +606,18 @@ export function TaskManagementPanel({
                             }}
                             className="w-full px-2 py-1 rounded-[var(--radius)] bg-[hsl(var(--background))] border border-[hsl(var(--accent))] focus:ring-2 focus:ring-[hsl(var(--accent)/0.2)] outline-none text-sm"
                             autoFocus
+                          />
+                          <textarea
+                            value={editData.description}
+                            onChange={(e) =>
+                              setEditData({
+                                ...editData,
+                                description: e.target.value,
+                              })
+                            }
+                            placeholder="Description (optional)"
+                            rows={2}
+                            className="w-full px-2 py-1 rounded-[var(--radius)] bg-[hsl(var(--background))] border border-[hsl(var(--border))] focus:border-[hsl(var(--accent))] focus:ring-2 focus:ring-[hsl(var(--accent)/0.2)] outline-none text-sm resize-none"
                           />
                           <input
                             type="date"
