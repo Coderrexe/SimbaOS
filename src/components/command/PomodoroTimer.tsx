@@ -36,7 +36,10 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
   const [elapsedTime, setElapsedTime] = React.useState(0);
   const [isRunning, setIsRunning] = React.useState(false);
   const [sessionId, setSessionId] = React.useState<string | null>(null);
+  const [accumulatedSeconds, setAccumulatedSeconds] = React.useState(0);
   const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
+  const autoSaveRef = React.useRef<NodeJS.Timeout | null>(null);
+  const lastSaveTimeRef = React.useRef(0);
 
   React.useEffect(() => {
     if (isRunning) {
@@ -49,13 +52,23 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
             }
             return prev - 1;
           });
+          setAccumulatedSeconds((prev) => prev + 1);
         } else {
           setElapsedTime((prev) => prev + 1);
+          setAccumulatedSeconds((prev) => prev + 1);
         }
       }, 1000);
+
+      // Auto-save every 10 seconds
+      autoSaveRef.current = setInterval(() => {
+        saveProgress();
+      }, 10000);
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
+      }
+      if (autoSaveRef.current) {
+        clearInterval(autoSaveRef.current);
       }
     }
 
@@ -63,22 +76,53 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
+      if (autoSaveRef.current) {
+        clearInterval(autoSaveRef.current);
+      }
     };
-  }, [isRunning, mode]);
+  }, [isRunning, mode, sessionId]);
+
+  const saveProgress = async () => {
+    if (!sessionId || accumulatedSeconds === lastSaveTimeRef.current) return;
+
+    const minutesToSave = Math.floor(accumulatedSeconds / 60);
+    if (minutesToSave > 0) {
+      try {
+        await fetch(`/api/pomodoro/${sessionId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            duration: minutesToSave,
+            completedAt: null, // Keep session open
+          }),
+        });
+        lastSaveTimeRef.current = accumulatedSeconds;
+        onSessionComplete?.(); // Trigger refresh of stats
+      } catch (error) {
+        console.error("Error saving progress:", error);
+      }
+    }
+  };
 
   const handleTimerComplete = async () => {
     setIsRunning(false);
     endSoundRef.current?.play().catch(() => {});
 
     if (mode === "pomodoro" && phase === "work" && sessionId) {
+      const finalMinutes = Math.floor(accumulatedSeconds / 60);
       await fetch(`/api/pomodoro/${sessionId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ completedAt: new Date().toISOString() }),
+        body: JSON.stringify({
+          completedAt: new Date().toISOString(),
+          duration: finalMinutes > 0 ? finalMinutes : WORK_DURATION / 60,
+        }),
       });
 
       onSessionComplete?.();
       setSessionId(null);
+      setAccumulatedSeconds(0);
+      lastSaveTimeRef.current = 0;
       setPhase("break");
       setTimeLeft(BREAK_DURATION);
     } else if (mode === "pomodoro" && phase === "break") {
@@ -97,13 +141,15 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             type: "WORK",
-            duration: WORK_DURATION / 60,
+            duration: 0, // Start at 0, will update as we go
           }),
         });
 
         if (response.ok) {
           const data = await response.json();
           setSessionId(data.id);
+          setAccumulatedSeconds(0);
+          lastSaveTimeRef.current = 0;
         }
       } else if (mode === "elapsed" && !sessionId) {
         const response = await fetch("/api/pomodoro", {
@@ -118,8 +164,13 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
         if (response.ok) {
           const data = await response.json();
           setSessionId(data.id);
+          setAccumulatedSeconds(0);
+          lastSaveTimeRef.current = 0;
         }
       }
+    } else {
+      // Pausing - save current progress
+      await saveProgress();
     }
 
     setIsRunning(!isRunning);
@@ -128,11 +179,10 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
   const handleReset = async () => {
     setIsRunning(false);
 
-    if (mode === "pomodoro") {
-      setTimeLeft(phase === "work" ? WORK_DURATION : BREAK_DURATION);
-    } else {
-      if (sessionId && elapsedTime > 0) {
-        const minutes = Math.floor(elapsedTime / 60);
+    // Save any accumulated time before resetting
+    if (sessionId && accumulatedSeconds > 0) {
+      const minutes = Math.floor(accumulatedSeconds / 60);
+      if (minutes > 0) {
         await fetch(`/api/pomodoro/${sessionId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -143,14 +193,38 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
         });
         onSessionComplete?.();
       }
+    }
+
+    if (mode === "pomodoro") {
+      setTimeLeft(phase === "work" ? WORK_DURATION : BREAK_DURATION);
+    } else {
       setElapsedTime(0);
     }
 
     setSessionId(null);
+    setAccumulatedSeconds(0);
+    lastSaveTimeRef.current = 0;
   };
 
-  const handleModeChange = (newMode: TimerMode) => {
+  const handleModeChange = async (newMode: TimerMode) => {
     setIsRunning(false);
+
+    // Save any accumulated time before switching modes
+    if (sessionId && accumulatedSeconds > 0) {
+      const minutes = Math.floor(accumulatedSeconds / 60);
+      if (minutes > 0) {
+        await fetch(`/api/pomodoro/${sessionId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            completedAt: new Date().toISOString(),
+            duration: minutes,
+          }),
+        });
+        onSessionComplete?.();
+      }
+    }
+
     setMode(newMode);
 
     if (newMode === "pomodoro") {
@@ -163,6 +237,8 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
     }
 
     setSessionId(null);
+    setAccumulatedSeconds(0);
+    lastSaveTimeRef.current = 0;
   };
 
   const formatTime = (seconds: number) => {

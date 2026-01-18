@@ -13,9 +13,11 @@ interface JarvisHeaderProps {
 export function JarvisHeader({
   userName = "Simba",
   activeTasksCount,
-  todayFocusMinutes,
+  todayFocusMinutes: initialFocusMinutes,
 }: JarvisHeaderProps) {
   const [currentTime, setCurrentTime] = React.useState(new Date());
+  const [todayFocusMinutes, setTodayFocusMinutes] =
+    React.useState(initialFocusMinutes);
   const [motivationalMessage, setMotivationalMessage] = React.useState(
     "Systems online. Ready to dominate the day.",
   );
@@ -29,6 +31,33 @@ export function JarvisHeader({
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
+
+  // Fetch live focus time updates
+  const fetchFocusTime = React.useCallback(async () => {
+    try {
+      const response = await fetch("/api/pomodoro?period=daily");
+      const data = await response.json();
+      setTodayFocusMinutes(data.totalMinutes);
+    } catch (error) {
+      console.error("Error fetching focus time:", error);
+    }
+  }, []);
+
+  // Poll for updates every 10 seconds
+  React.useEffect(() => {
+    const pollInterval = setInterval(() => {
+      fetchFocusTime();
+    }, 10000);
+
+    return () => clearInterval(pollInterval);
+  }, [fetchFocusTime]);
+
+  // Listen for pomodoro completion events
+  React.useEffect(() => {
+    const handleRefresh = () => fetchFocusTime();
+    window.addEventListener("pomodoro-complete", handleRefresh);
+    return () => window.removeEventListener("pomodoro-complete", handleRefresh);
+  }, [fetchFocusTime]);
 
   React.useEffect(() => {
     // Set random message after mount to avoid hydration mismatch

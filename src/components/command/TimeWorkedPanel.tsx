@@ -42,6 +42,15 @@ export function TimeWorkedPanel() {
     return () => window.removeEventListener("pomodoro-complete", handleRefresh);
   }, [fetchStats]);
 
+  // Live polling every 10 seconds to show real-time updates
+  React.useEffect(() => {
+    const pollInterval = setInterval(() => {
+      fetchStats();
+    }, 10000); // Poll every 10 seconds
+
+    return () => clearInterval(pollInterval);
+  }, [fetchStats]);
+
   const periodLabels = {
     daily: "Today",
     weekly: "This Week",

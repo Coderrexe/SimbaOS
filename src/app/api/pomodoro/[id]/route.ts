@@ -13,21 +13,34 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const body = await req.json();
+    const updateData: any = {};
+
+    // Update duration if provided
+    if (body.duration !== undefined) {
+      updateData.duration = body.duration;
+    }
+
+    // Update completedAt if provided (null keeps it open, date completes it)
+    if (body.completedAt !== undefined) {
+      updateData.completedAt = body.completedAt
+        ? new Date(body.completedAt)
+        : null;
+    }
+
     const pomodoroSession = await prisma.pomodoroSession.update({
       where: {
         id: params.id,
         userId: session.user.id,
       },
-      data: {
-        completedAt: new Date(),
-      },
+      data: updateData,
     });
 
     return NextResponse.json(pomodoroSession);
   } catch (error) {
-    console.error("Error completing pomodoro session:", error);
+    console.error("Error updating pomodoro session:", error);
     return NextResponse.json(
-      { error: "Failed to complete pomodoro session" },
+      { error: "Failed to update pomodoro session" },
       { status: 500 },
     );
   }

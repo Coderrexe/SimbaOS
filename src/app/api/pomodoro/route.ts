@@ -60,23 +60,29 @@ export async function GET(req: Request) {
         startDate = new Date(now.setHours(0, 0, 0, 0));
     }
 
+    // Get all work sessions (both completed and in-progress) for the period
     const sessions = await prisma.pomodoroSession.findMany({
       where: {
         userId: session.user.id,
         type: "WORK",
         startedAt: { gte: startDate },
-        completedAt: { not: null },
       },
       orderBy: { startedAt: "desc" },
     });
 
+    // Calculate total minutes from all sessions (including in-progress ones)
     const totalMinutes = sessions.reduce(
       (sum, session) => sum + session.duration,
       0,
     );
 
+    // Separate completed and in-progress sessions
+    const completedSessions = sessions.filter((s) => s.completedAt !== null);
+    const inProgressSessions = sessions.filter((s) => s.completedAt === null);
+
     return NextResponse.json({
-      sessions,
+      sessions: completedSessions,
+      inProgressSessions,
       totalMinutes,
       totalHours: Math.floor(totalMinutes / 60),
       remainingMinutes: totalMinutes % 60,
