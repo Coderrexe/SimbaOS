@@ -88,18 +88,18 @@ export function CommandPageClient({ data }: { data: CommandData }) {
   return (
     <div className="min-h-screen pb-20">
       <div className="max-w-[1600px] mx-auto p-6 space-y-6">
-        {/* Task Management Row */}
-        <div className="grid grid-cols-1 gap-6">
+        {/* Top Row: Tasks + Pomodoro Timer (Split Screen) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <TaskManagementPanel initialTasks={data.allTasks} />
+          <PomodoroTimer onSessionComplete={handlePomodoroComplete} />
         </div>
 
-        {/* Pomodoro Row: Timer + Time Worked */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <PomodoroTimer onSessionComplete={handlePomodoroComplete} />
+        {/* Time Worked Panel (Full Width) */}
+        <div className="grid grid-cols-1 gap-6">
           <TimeWorkedPanel />
         </div>
 
-        {/* Top Row: Outcomes + Trajectory */}
+        {/* Outcomes + Trajectory */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <TopOutcomesPanel tasks={data.topTasks} onSelect={setSelection} />
           <TrajectoryPanel
@@ -112,7 +112,7 @@ export function CommandPageClient({ data }: { data: CommandData }) {
           />
         </div>
 
-        {/* Middle Row: Timeline + Next Actions */}
+        {/* Timeline + Next Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <TimelinePanel tasks={data.todayTasks} />
@@ -123,11 +123,12 @@ export function CommandPageClient({ data }: { data: CommandData }) {
           />
         </div>
 
+        {/* Project Lanes */}
         <div className="grid grid-cols-1 gap-6">
           <ProjectLanesPanel projects={data.projects} onSelect={setSelection} />
         </div>
 
-        {/* Bottom Row: Inbox + Signals */}
+        {/* Inbox + Signals */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <InboxPanel items={data.inboxItems} onSelect={setSelection} />
           <SignalsPanel
