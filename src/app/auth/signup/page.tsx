@@ -27,7 +27,7 @@ export default function SignUp() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.push("/dashboard");
+      router.push("/command");
     }
   }, [status, router]);
 
@@ -58,7 +58,7 @@ export default function SignUp() {
   };
 
   const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/dashboard" });
+    signIn("google", { callbackUrl: "/command" });
   };
 
   if (status === "loading") {

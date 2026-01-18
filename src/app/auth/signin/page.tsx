@@ -26,7 +26,7 @@ export default function SignIn() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.push("/dashboard");
+      router.push("/command");
     }
   }, [status, router]);
 
@@ -45,7 +45,7 @@ export default function SignIn() {
       if (result?.error) {
         setError("Invalid email or password");
       } else {
-        router.push("/dashboard");
+        router.push("/command");
         router.refresh();
       }
     } catch (err) {
@@ -56,7 +56,7 @@ export default function SignIn() {
   };
 
   const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/dashboard" });
+    signIn("google", { callbackUrl: "/command" });
   };
 
   if (status === "loading") {
