@@ -67,7 +67,9 @@ export async function GET(req: Request) {
         type: "WORK",
         startedAt: { gte: startDate },
       },
-      orderBy: { startedAt: "desc" },
+      select: {
+        duration: true,
+      },
     });
 
     // Calculate total minutes from all sessions (including in-progress ones)
@@ -76,13 +78,7 @@ export async function GET(req: Request) {
       0,
     );
 
-    // Separate completed and in-progress sessions
-    const completedSessions = sessions.filter((s) => s.completedAt !== null);
-    const inProgressSessions = sessions.filter((s) => s.completedAt === null);
-
     return NextResponse.json({
-      sessions: completedSessions,
-      inProgressSessions,
       totalMinutes,
       totalHours: Math.floor(totalMinutes / 60),
       remainingMinutes: totalMinutes % 60,

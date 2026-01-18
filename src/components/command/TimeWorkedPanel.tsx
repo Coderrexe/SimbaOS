@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Panel } from "./Panel";
 import { GlowBadge } from "./GlowBadge";
-import { Clock, TrendingUp } from "lucide-react";
+import { Clock } from "lucide-react";
 import { motion } from "framer-motion";
 
 type Period = "daily" | "weekly" | "lifetime";
@@ -14,7 +14,6 @@ export function TimeWorkedPanel() {
     totalMinutes: 0,
     totalHours: 0,
     remainingMinutes: 0,
-    sessions: [],
   });
   const [loading, setLoading] = React.useState(true);
 
@@ -98,36 +97,7 @@ export function TimeWorkedPanel() {
                 {stats.remainingMinutes}
                 <span className="text-2xl text-muted">m</span>
               </div>
-              <p className="text-sm text-muted">
-                {stats.sessions.length}{" "}
-                {stats.sessions.length === 1 ? "session" : "sessions"}
-              </p>
-            </div>
-
-            {/* Additional Stats */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 rounded-[var(--radius)] surface-2">
-                <div className="flex items-center gap-2 mb-1">
-                  <Clock className="h-4 w-4 text-[hsl(var(--accent))]" />
-                  <span className="text-xs text-muted">Avg/Session</span>
-                </div>
-                <div className="text-lg font-semibold">
-                  {stats.sessions.length > 0
-                    ? Math.round(stats.totalMinutes / stats.sessions.length)
-                    : 0}
-                  m
-                </div>
-              </div>
-
-              <div className="p-3 rounded-[var(--radius)] surface-2">
-                <div className="flex items-center gap-2 mb-1">
-                  <TrendingUp className="h-4 w-4 text-[hsl(var(--success))]" />
-                  <span className="text-xs text-muted">Sessions</span>
-                </div>
-                <div className="text-lg font-semibold">
-                  {stats.sessions.length}
-                </div>
-              </div>
+              <p className="text-sm text-muted">Total focused work time</p>
             </div>
 
             {/* Motivational Message */}
