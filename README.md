@@ -2,6 +2,12 @@
 
 A production-grade personal dashboard for founders and builders. Track goals, tasks, habits, and weekly reviews in one place with intelligent prioritization and momentum tracking.
 
+## Screenshots
+
+![SimbaOS Command Center](images/app1.png)
+
+_The command center with JARVIS-style header, task management, and Pomodoro timer_
+
 ## Features
 
 ### Core Modules
