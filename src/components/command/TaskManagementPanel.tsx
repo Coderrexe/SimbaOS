@@ -107,19 +107,6 @@ export function TaskManagementPanel({
   ) => {
     const newStatus = currentStatus === "DONE" ? "TODO" : "DONE";
 
-    if (newStatus === "DONE") {
-      // Show celebration first
-      setCelebratingId(taskId);
-
-      // Wait for celebration to show
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      // Then start slide out
-      setCompletingId(taskId);
-    } else {
-      setCompletingId(taskId);
-    }
-
     try {
       const response = await fetch(`/api/tasks/${taskId}`, {
         method: "PATCH",
@@ -130,14 +117,25 @@ export function TaskManagementPanel({
       if (response.ok) {
         const updatedTask = await response.json();
 
-        // Wait for slide animation to complete
-        await new Promise((resolve) =>
-          setTimeout(resolve, newStatus === "DONE" ? 600 : 300),
-        );
+        if (newStatus === "DONE") {
+          // Show celebration animation
+          setCelebratingId(taskId);
 
-        setTasks(tasks.map((t) => (t.id === taskId ? updatedTask : t)));
-        setCompletingId(null);
-        setCelebratingId(null);
+          // After 1 second, start the slide out
+          setTimeout(() => {
+            setCelebratingId(null);
+            setCompletingId(taskId);
+
+            // After slide completes, update state
+            setTimeout(() => {
+              setTasks(tasks.map((t) => (t.id === taskId ? updatedTask : t)));
+              setCompletingId(null);
+            }, 500);
+          }, 1000);
+        } else {
+          // For uncompleting, just update immediately
+          setTasks(tasks.map((t) => (t.id === taskId ? updatedTask : t)));
+        }
       }
     } catch (error) {
       console.error("Error updating task:", error);

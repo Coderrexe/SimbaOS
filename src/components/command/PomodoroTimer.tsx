@@ -16,14 +16,20 @@ interface PomodoroTimerProps {
 const WORK_DURATION = 25 * 60;
 const BREAK_DURATION = 5 * 60;
 
-const startSound = new Audio(
-  "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGGe77eeeTRAMUKfj8LZjHAY4ktfyy3ksBSR3x/DdkEAKFF606+uoVRQKRp/g8r5sIQUrgs7y2Ik2CBhnu+3nnk0QDFCn4/C2YxwGOJLX8st5LAUkd8fw3ZBACg==",
-);
-const endSound = new Audio(
-  "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGGe77eeeTRAMUKfj8LZjHAY4ktfyy3ksBSR3x/DdkEAKFF606+uoVRQKRp/g8r5sIQUrgs7y2Ik2CBhnu+3nnk0QDFCn4/C2YxwGOJLX8st5LAUkd8fw3ZBACg==",
-);
-
 export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
+  const startSoundRef = React.useRef<HTMLAudioElement | null>(null);
+  const endSoundRef = React.useRef<HTMLAudioElement | null>(null);
+
+  React.useEffect(() => {
+    // Create audio elements on client side only
+    startSoundRef.current = new Audio(
+      "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGGe77eeeTRAMUKfj8LZjHAY4ktfyy3ksBSR3x/DdkEAKFF606+uoVRQKRp/g8r5sIQUrgs7y2Ik2CBhnu+3nnk0QDFCn4/C2YxwGOJLX8st5LAUkd8fw3ZBACg==",
+    );
+    endSoundRef.current = new Audio(
+      "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGGe77eeeTRAMUKfj8LZjHAY4ktfyy3ksBSR3x/DdkEAKFF606+uoVRQKRp/g8r5sIQUrgs7y2Ik2CBhnu+3nnk0QDFCn4/C2YxwGOJLX8st5LAUkd8fw3ZBACg==",
+    );
+  }, []);
+
   const [mode, setMode] = React.useState<TimerMode>("pomodoro");
   const [phase, setPhase] = React.useState<PomodoroPhase>("work");
   const [timeLeft, setTimeLeft] = React.useState(WORK_DURATION);
@@ -62,7 +68,7 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
 
   const handleTimerComplete = async () => {
     setIsRunning(false);
-    endSound.play().catch(() => {});
+    endSoundRef.current?.play().catch(() => {});
 
     if (mode === "pomodoro" && phase === "work" && sessionId) {
       await fetch(`/api/pomodoro/${sessionId}`, {
@@ -83,7 +89,7 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
 
   const handleStart = async () => {
     if (!isRunning) {
-      startSound.play().catch(() => {});
+      startSoundRef.current?.play().catch(() => {});
 
       if (mode === "pomodoro" && phase === "work" && !sessionId) {
         const response = await fetch("/api/pomodoro", {
@@ -288,15 +294,7 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
               initial={{ scale: 1.1, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 200, damping: 20 }}
-              className="text-7xl font-bold tracking-tight"
-              style={{
-                background:
-                  "linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--accent-secondary)) 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-                textShadow: "0 0 40px hsl(var(--accent) / 0.3)",
-              }}
+              className="text-7xl font-bold tracking-tight text-[hsl(var(--accent))]"
             >
               {formatTime(mode === "pomodoro" ? timeLeft : elapsedTime)}
             </motion.div>
