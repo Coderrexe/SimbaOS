@@ -1,4 +1,4 @@
-"use client";
+w"use client";
 
 import { CommandProvider } from "@/lib/command-context";
 import { LeftRail } from "@/components/command/LeftRail";
