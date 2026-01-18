@@ -16,6 +16,9 @@ export function JarvisHeader({
   todayFocusMinutes,
 }: JarvisHeaderProps) {
   const [currentTime, setCurrentTime] = React.useState(new Date());
+  const [motivationalMessage, setMotivationalMessage] = React.useState(
+    "Systems online. Ready to dominate the day.",
+  );
   const [weather, setWeather] = React.useState<{
     temp: number;
     condition: string;
@@ -25,6 +28,21 @@ export function JarvisHeader({
   React.useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
+  }, []);
+
+  React.useEffect(() => {
+    // Set random message after mount to avoid hydration mismatch
+    const messages = [
+      "Systems online. Ready to dominate the day.",
+      "All systems operational. Let's make it count.",
+      "Power levels optimal. Time to execute.",
+      "Ready when you are, sir.",
+      "Standing by for your command.",
+      "Diagnostics complete. You're all set.",
+    ];
+    setMotivationalMessage(
+      messages[Math.floor(Math.random() * messages.length)],
+    );
   }, []);
 
   React.useEffect(() => {
@@ -60,18 +78,6 @@ export function JarvisHeader({
     if (hour < 17) return "Good afternoon";
     if (hour < 21) return "Good evening";
     return "Good night";
-  };
-
-  const getMotivationalMessage = () => {
-    const messages = [
-      "Systems online. Ready to dominate the day.",
-      "All systems operational. Let's make it count.",
-      "Power levels optimal. Time to execute.",
-      "Ready when you are, sir.",
-      "Standing by for your command.",
-      "Diagnostics complete. You're all set.",
-    ];
-    return messages[Math.floor(Math.random() * messages.length)];
   };
 
   const formatDate = () => {
@@ -122,7 +128,7 @@ export function JarvisHeader({
 
         {/* Bottom: Message and Stats */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
-          <p className="text-sm text-muted">{getMotivationalMessage()}</p>
+          <p className="text-sm text-muted">{motivationalMessage}</p>
 
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius)] surface-2 whitespace-nowrap">

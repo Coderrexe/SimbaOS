@@ -637,16 +637,18 @@ export function TaskManagementPanel({
                             {task.dueDate && (
                               <span className="text-muted flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
-                                {new Date(task.dueDate).toLocaleDateString()}
+                                {new Date(task.dueDate).toLocaleDateString(
+                                  "en-US",
+                                )}
                               </span>
                             )}
                             {showCompleted && task.completedAt && (
                               <span className="text-muted flex items-center gap-1">
                                 <CheckCircle2 className="h-3 w-3" />
                                 Completed{" "}
-                                {new Date(
-                                  task.completedAt,
-                                ).toLocaleDateString()}
+                                {new Date(task.completedAt).toLocaleDateString(
+                                  "en-US",
+                                )}
                               </span>
                             )}
                             {task.project && (
