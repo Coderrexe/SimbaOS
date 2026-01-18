@@ -22,6 +22,7 @@ model User {
   habitLogs     HabitLog[]
   weeklyReviews WeeklyReview[]
   metrics       Metric[]
+  pomodoroSessions PomodoroSession[]
   
   @@map("users")
 }
@@ -230,4 +231,25 @@ enum MetricType {
   SLEEP_AVERAGE
   RELATIONSHIPS
   FOUNDER_MOMENTUM
+}
+
+model PomodoroSession {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type        PomodoroType  @default(WORK)
+  duration    Int
+  startedAt   DateTime      @default(now())
+  completedAt DateTime?
+  
+  createdAt   DateTime      @default(now())
+  
+  @@index([userId, startedAt])
+  @@map("pomodoro_sessions")
+}
+
+enum PomodoroType {
+  WORK
+  BREAK
 }

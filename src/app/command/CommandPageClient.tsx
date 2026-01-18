@@ -9,6 +9,8 @@ import {
   ProgressRing,
   StreakDots,
 } from "@/components/command/MicroChart";
+import { PomodoroTimer } from "@/components/command/PomodoroTimer";
+import { TimeWorkedPanel } from "@/components/command/TimeWorkedPanel";
 import {
   Target,
   Zap,
@@ -76,9 +78,20 @@ export function CommandPageClient({ data }: { data: CommandData }) {
     (weekMetrics.sleepData.filter((v) => v > 0).length || 1);
   const workoutCount = weekMetrics.workoutDays.filter(Boolean).length;
 
+  const handlePomodoroComplete = () => {
+    // Trigger refresh of time worked panel
+    window.dispatchEvent(new Event("pomodoro-complete"));
+  };
+
   return (
     <div className="min-h-screen pb-20">
       <div className="max-w-[1600px] mx-auto p-6 space-y-6">
+        {/* Pomodoro Row: Timer + Time Worked */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <PomodoroTimer onSessionComplete={handlePomodoroComplete} />
+          <TimeWorkedPanel />
+        </div>
+
         {/* Top Row: Outcomes + Trajectory */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <TopOutcomesPanel tasks={data.topTasks} onSelect={setSelection} />
