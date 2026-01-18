@@ -20,6 +20,7 @@ async function getCommandData(userId: string) {
     staleProjects,
     overdueTasks,
     habits,
+    allTasks,
   ] = await Promise.all([
     // Top priority tasks
     prisma.task.findMany({
@@ -122,6 +123,16 @@ async function getCommandData(userId: string) {
         },
       },
     }),
+
+    // All active tasks for task management panel
+    prisma.task.findMany({
+      where: {
+        userId,
+        status: { in: ["TODO", "IN_PROGRESS", "INBOX"] },
+      },
+      include: { project: true },
+      orderBy: [{ priority: "desc" }, { dueDate: "asc" }],
+    }),
   ]);
 
   return {
@@ -134,6 +145,7 @@ async function getCommandData(userId: string) {
     staleProjects,
     overdueTasks,
     habits,
+    allTasks,
   };
 }
 

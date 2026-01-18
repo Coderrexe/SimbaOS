@@ -39,17 +39,49 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
+
+    console.log("Session:", JSON.stringify(session, null, 2));
+
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      console.error("No user ID in session:", session);
+      return NextResponse.json(
+        { error: "Unauthorized - Please sign in again" },
+        { status: 401 },
+      );
     }
 
     const data = await req.json();
 
+    console.log("Creating task with userId:", session.user.id);
+
+    // Verify user exists
+    const userExists = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    });
+
+    if (!userExists) {
+      console.error("User not found in database:", session.user.id);
+      return NextResponse.json(
+        {
+          error: "User not found - Please sign out and sign in again",
+        },
+        { status: 400 },
+      );
+    }
+
     const task = await prisma.task.create({
       data: {
-        ...data,
-        userId: session.user.id,
+        title: data.title,
+        notes: data.notes || null,
         dueDate: data.dueDate ? new Date(data.dueDate) : null,
+        priority: data.priority || 3,
+        impact: data.impact || 3,
+        energyLevel: data.energyLevel || "MEDIUM",
+        context: data.context || "COMPUTER",
+        status: data.status || "TODO",
+        estimatedMinutes: data.estimatedMinutes || null,
+        projectId: data.projectId || null,
+        userId: session.user.id,
       },
       include: {
         project: true,
@@ -60,7 +92,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Create task error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Failed to create task: " + (error as Error).message },
       { status: 500 },
     );
   }

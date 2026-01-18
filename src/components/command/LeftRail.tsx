@@ -13,9 +13,11 @@ import {
   BookOpen,
   BarChart3,
   Zap,
+  LogOut,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 const navItems = [
   { icon: Zap, label: "Command", href: "/command" },
@@ -78,10 +80,16 @@ export function LeftRail() {
         })}
       </nav>
 
-      {/* System Status */}
-      <div className="p-4 border-t border-[hsl(var(--border-subtle))]">
-        <div className="flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-[hsl(var(--success))] animate-pulse" />
+      {/* Sign Out Button */}
+      <div className="p-2 border-t border-[hsl(var(--border))]">
+        <button
+          onClick={() => signOut({ callbackUrl: "/auth/signin" })}
+          className={cn(
+            "w-full flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius)] transition-all",
+            "hover:bg-[hsl(var(--danger)/0.1)] hover:text-[hsl(var(--danger))]",
+          )}
+        >
+          <LogOut className="h-5 w-5 flex-shrink-0" />
           <motion.span
             initial={false}
             animate={{
@@ -89,11 +97,11 @@ export function LeftRail() {
               width: expanded ? "auto" : 0,
             }}
             transition={{ duration: 0.15 }}
-            className="text-xs text-subtle whitespace-nowrap overflow-hidden"
+            className="text-sm font-medium whitespace-nowrap overflow-hidden"
           >
-            Synced
+            Sign Out
           </motion.span>
-        </div>
+        </button>
       </div>
     </motion.aside>
   );

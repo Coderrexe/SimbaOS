@@ -11,6 +11,7 @@ import {
 } from "@/components/command/MicroChart";
 import { PomodoroTimer } from "@/components/command/PomodoroTimer";
 import { TimeWorkedPanel } from "@/components/command/TimeWorkedPanel";
+import { TaskManagementPanel } from "@/components/command/TaskManagementPanel";
 import {
   Target,
   Zap,
@@ -31,6 +32,7 @@ interface CommandData {
   staleProjects: any[];
   overdueTasks: any[];
   habits: any[];
+  allTasks: any[];
 }
 
 export function CommandPageClient({ data }: { data: CommandData }) {
@@ -86,6 +88,11 @@ export function CommandPageClient({ data }: { data: CommandData }) {
   return (
     <div className="min-h-screen pb-20">
       <div className="max-w-[1600px] mx-auto p-6 space-y-6">
+        {/* Task Management Row */}
+        <div className="grid grid-cols-1 gap-6">
+          <TaskManagementPanel initialTasks={data.allTasks} />
+        </div>
+
         {/* Pomodoro Row: Timer + Time Worked */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <PomodoroTimer onSessionComplete={handlePomodoroComplete} />
