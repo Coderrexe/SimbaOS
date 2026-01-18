@@ -12,6 +12,7 @@ import {
 import { PomodoroTimer } from "@/components/command/PomodoroTimer";
 import { TimeWorkedPanel } from "@/components/command/TimeWorkedPanel";
 import { TaskManagementPanel } from "@/components/command/TaskManagementPanel";
+import { JarvisHeader } from "@/components/command/JarvisHeader";
 import {
   Target,
   Zap,
@@ -28,6 +29,7 @@ interface CommandData {
   todayTasks: any[];
   nextActions: any[];
   projects: any[];
+  todayFocusMinutes: number;
   inboxItems: any[];
   staleProjects: any[];
   overdueTasks: any[];
@@ -85,9 +87,19 @@ export function CommandPageClient({ data }: { data: CommandData }) {
     window.dispatchEvent(new Event("pomodoro-complete"));
   };
 
+  const activeTasksCount = data.allTasks.filter(
+    (t) => t.status !== "DONE",
+  ).length;
+
   return (
     <div className="min-h-screen pb-20">
       <div className="max-w-[1600px] mx-auto p-6 space-y-6">
+        {/* JARVIS Header */}
+        <JarvisHeader
+          activeTasksCount={activeTasksCount}
+          todayFocusMinutes={data.todayFocusMinutes}
+        />
+
         {/* Top Row: Tasks + Pomodoro Timer (Split Screen) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <TaskManagementPanel initialTasks={data.allTasks} />

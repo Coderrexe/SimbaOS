@@ -224,10 +224,10 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
           </div>
         </div>
 
-        {/* Timer Display */}
-        <div className="relative">
-          {/* Circular Progress */}
-          <svg className="w-full h-64" viewBox="0 0 200 200">
+        {/* Timer Display with Prominent Numbers */}
+        <div className="relative flex items-center justify-center">
+          {/* Circular Progress Background */}
+          <svg className="absolute w-full h-64" viewBox="0 0 200 200">
             <defs>
               <linearGradient
                 id="progressGradient"
@@ -255,7 +255,7 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
               r="80"
               fill="none"
               stroke="hsl(var(--surface2))"
-              strokeWidth="12"
+              strokeWidth="8"
             />
 
             {/* Progress Circle */}
@@ -265,7 +265,7 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
               r="80"
               fill="none"
               stroke="url(#progressGradient)"
-              strokeWidth="12"
+              strokeWidth="8"
               strokeLinecap="round"
               strokeDasharray={`${2 * Math.PI * 80}`}
               initial={{ strokeDashoffset: 2 * Math.PI * 80 }}
@@ -281,13 +281,22 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
             />
           </svg>
 
-          {/* Time Display */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
+          {/* Time Display - Large Prominent Numbers */}
+          <div className="relative z-10 flex flex-col items-center justify-center py-16">
             <motion.div
               key={mode === "pomodoro" ? timeLeft : elapsedTime}
-              initial={{ scale: 1.2, opacity: 0 }}
+              initial={{ scale: 1.1, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="text-6xl font-bold bg-gradient-to-br from-[hsl(var(--accent))] to-[hsl(var(--accent-secondary))] bg-clip-text text-transparent"
+              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+              className="text-7xl font-bold tracking-tight"
+              style={{
+                background:
+                  "linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--accent-secondary)) 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                textShadow: "0 0 40px hsl(var(--accent) / 0.3)",
+              }}
             >
               {formatTime(mode === "pomodoro" ? timeLeft : elapsedTime)}
             </motion.div>
@@ -298,7 +307,7 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="mt-2"
+                  className="mt-3"
                 >
                   <GlowBadge variant={phase === "work" ? "accent" : "success"}>
                     {phase === "work" ? (

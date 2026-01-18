@@ -69,11 +69,18 @@ export async function POST(req: Request) {
       );
     }
 
+    // Fix timezone issue: parse date as local date at noon to avoid day shift
+    let dueDate = null;
+    if (data.dueDate) {
+      const [year, month, day] = data.dueDate.split("-").map(Number);
+      dueDate = new Date(year, month - 1, day, 12, 0, 0);
+    }
+
     const task = await prisma.task.create({
       data: {
         title: data.title,
         notes: data.notes || null,
-        dueDate: data.dueDate ? new Date(data.dueDate) : null,
+        dueDate,
         priority: data.priority || 3,
         impact: data.impact || 3,
         energyLevel: data.energyLevel || "MEDIUM",

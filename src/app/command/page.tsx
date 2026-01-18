@@ -9,6 +9,7 @@ async function getCommandData(userId: string) {
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const today = new Date(now.setHours(0, 0, 0, 0));
   const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+  const todayEnd = new Date(tomorrow.getTime() - 1);
 
   const [
     topTasks,
@@ -21,6 +22,7 @@ async function getCommandData(userId: string) {
     overdueTasks,
     habits,
     allTasks,
+    todayPomodoros,
   ] = await Promise.all([
     // Top priority tasks
     prisma.task.findMany({
@@ -124,16 +126,29 @@ async function getCommandData(userId: string) {
       },
     }),
 
-    // All active tasks for task management panel
+    // All tasks for task management panel (including completed)
     prisma.task.findMany({
       where: {
         userId,
-        status: { in: ["TODO", "IN_PROGRESS", "INBOX"] },
       },
       include: { project: true },
-      orderBy: [{ priority: "desc" }, { dueDate: "asc" }],
+      orderBy: [{ status: "asc" }, { priority: "desc" }, { dueDate: "asc" }],
+    }),
+
+    // Today's Pomodoro sessions for focus time
+    prisma.pomodoroSession.findMany({
+      where: {
+        userId,
+        startedAt: { gte: today, lt: tomorrow },
+        completedAt: { not: null },
+      },
     }),
   ]);
+
+  // Calculate today's focus time
+  const todayFocusMinutes = todayPomodoros.reduce((total, session) => {
+    return total + session.duration;
+  }, 0);
 
   return {
     topTasks,
@@ -146,6 +161,7 @@ async function getCommandData(userId: string) {
     overdueTasks,
     habits,
     allTasks,
+    todayFocusMinutes,
   };
 }
 

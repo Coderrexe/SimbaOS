@@ -11,7 +11,9 @@ import {
   Calendar,
   AlertCircle,
   Sparkles,
-  Trash2,
+  CheckCircle2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -28,6 +30,7 @@ interface Task {
   energyLevel: string;
   estimatedMinutes?: number;
   project?: { name: string };
+  completedAt?: Date | string;
 }
 
 interface TaskManagementPanelProps {
@@ -42,8 +45,10 @@ export function TaskManagementPanel({
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [editData, setEditData] = React.useState({ title: "", dueDate: "" });
   const [showNewTaskForm, setShowNewTaskForm] = React.useState(false);
+  const [showCompleted, setShowCompleted] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [completingId, setCompletingId] = React.useState<string | null>(null);
+  const [celebratingId, setCelebratingId] = React.useState<string | null>(null);
   const [newTask, setNewTask] = React.useState({
     title: "",
     dueDate: "",
@@ -71,9 +76,18 @@ export function TaskManagementPanel({
   };
 
   const sortedTasks = React.useMemo(() => {
-    const activeTasks = tasks.filter((t) => t.status !== "DONE");
+    const filteredTasks = showCompleted
+      ? tasks.filter((t) => t.status === "DONE")
+      : tasks.filter((t) => t.status !== "DONE");
 
-    return [...activeTasks].sort((a, b) => {
+    return [...filteredTasks].sort((a, b) => {
+      if (showCompleted) {
+        return (
+          new Date(b.completedAt || 0).getTime() -
+          new Date(a.completedAt || 0).getTime()
+        );
+      }
+
       if (sortBy === "dueDate") {
         if (!a.dueDate && !b.dueDate) return b.priority - a.priority;
         if (!a.dueDate) return 1;
@@ -85,14 +99,26 @@ export function TaskManagementPanel({
         return b.priority - a.priority;
       }
     });
-  }, [tasks, sortBy]);
+  }, [tasks, sortBy, showCompleted]);
 
   const handleToggleComplete = async (
     taskId: string,
     currentStatus: string,
   ) => {
     const newStatus = currentStatus === "DONE" ? "TODO" : "DONE";
-    setCompletingId(taskId);
+
+    if (newStatus === "DONE") {
+      // Show celebration first
+      setCelebratingId(taskId);
+
+      // Wait for celebration to show
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      // Then start slide out
+      setCompletingId(taskId);
+    } else {
+      setCompletingId(taskId);
+    }
 
     try {
       const response = await fetch(`/api/tasks/${taskId}`, {
@@ -104,14 +130,19 @@ export function TaskManagementPanel({
       if (response.ok) {
         const updatedTask = await response.json();
 
-        setTimeout(() => {
-          setTasks(tasks.map((t) => (t.id === taskId ? updatedTask : t)));
-          setCompletingId(null);
-        }, 600);
+        // Wait for slide animation to complete
+        await new Promise((resolve) =>
+          setTimeout(resolve, newStatus === "DONE" ? 600 : 300),
+        );
+
+        setTasks(tasks.map((t) => (t.id === taskId ? updatedTask : t)));
+        setCompletingId(null);
+        setCelebratingId(null);
       }
     } catch (error) {
       console.error("Error updating task:", error);
       setCompletingId(null);
+      setCelebratingId(null);
     }
   };
 
@@ -212,47 +243,76 @@ export function TaskManagementPanel({
     return <GlowBadge variant="neutral">{daysUntil}d</GlowBadge>;
   };
 
+  const completedCount = tasks.filter((t) => t.status === "DONE").length;
+
   return (
     <Panel
       title="📋 Tasks & Deadlines"
-      subtitle={`${sortedTasks.length} active tasks`}
+      subtitle={
+        showCompleted
+          ? `${completedCount} completed tasks`
+          : `${sortedTasks.length} active tasks`
+      }
     >
       <div className="space-y-4">
-        {/* Sort Options & New Task Button */}
+        {/* Sort Options & Action Buttons */}
         <div className="flex items-center justify-between">
           <div className="flex gap-2">
-            {(["urgency", "dueDate", "priority"] as SortOption[]).map(
-              (option) => (
-                <motion.button
-                  key={option}
-                  onClick={() => setSortBy(option)}
-                  className={`px-3 py-1.5 rounded-[var(--radius)] text-xs font-medium transition-all ${
-                    sortBy === option
-                      ? "bg-[hsl(var(--accent))] text-white shadow-lg shadow-[hsl(var(--accent)/0.3)]"
-                      : "surface-2 hover:surface-3"
-                  }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {option === "urgency"
-                    ? "Urgency"
-                    : option === "dueDate"
-                      ? "Due Date"
-                      : "Priority"}
-                </motion.button>
-              ),
-            )}
+            {!showCompleted &&
+              (["urgency", "dueDate", "priority"] as SortOption[]).map(
+                (option) => (
+                  <motion.button
+                    key={option}
+                    onClick={() => setSortBy(option)}
+                    className={`px-3 py-1.5 rounded-[var(--radius)] text-xs font-medium transition-all ${
+                      sortBy === option
+                        ? "bg-[hsl(var(--accent))] text-white shadow-lg shadow-[hsl(var(--accent)/0.3)]"
+                        : "surface-2 hover:surface-3"
+                    }`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {option === "urgency"
+                      ? "Urgency"
+                      : option === "dueDate"
+                        ? "Due Date"
+                        : "Priority"}
+                  </motion.button>
+                ),
+              )}
           </div>
 
-          <motion.button
-            onClick={() => setShowNewTaskForm(!showNewTaskForm)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius)] bg-gradient-to-r from-[hsl(var(--accent))] to-[hsl(var(--accent-secondary))] text-white hover:opacity-90 transition-opacity text-xs font-medium shadow-lg shadow-[hsl(var(--accent)/0.3)]"
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Plus className="h-3.5 w-3.5" />
-            New Task
-          </motion.button>
+          <div className="flex gap-2">
+            <motion.button
+              onClick={() => setShowCompleted(!showCompleted)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius)] text-xs font-medium transition-all ${
+                showCompleted
+                  ? "bg-[hsl(var(--success))] text-white shadow-lg shadow-[hsl(var(--success)/0.3)]"
+                  : "surface-2 hover:surface-3"
+              }`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {showCompleted ? (
+                <EyeOff className="h-3.5 w-3.5" />
+              ) : (
+                <Eye className="h-3.5 w-3.5" />
+              )}
+              {showCompleted ? "Hide" : `Completed (${completedCount})`}
+            </motion.button>
+
+            {!showCompleted && (
+              <motion.button
+                onClick={() => setShowNewTaskForm(!showNewTaskForm)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius)] bg-gradient-to-r from-[hsl(var(--accent))] to-[hsl(var(--accent-secondary))] text-white hover:opacity-90 transition-opacity text-xs font-medium shadow-lg shadow-[hsl(var(--accent)/0.3)]"
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                New Task
+              </motion.button>
+            )}
+          </div>
         </div>
 
         {/* Error Message */}
@@ -281,7 +341,7 @@ export function TaskManagementPanel({
 
         {/* New Task Form */}
         <AnimatePresence>
-          {showNewTaskForm && (
+          {showNewTaskForm && !showCompleted && (
             <motion.form
               initial={{ opacity: 0, height: 0, scale: 0.95 }}
               animate={{ opacity: 1, height: "auto", scale: 1 }}
@@ -396,8 +456,14 @@ export function TaskManagementPanel({
               className="text-center py-12 text-muted"
             >
               <AlertCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p className="mb-2">No active tasks</p>
-              <p className="text-xs">Click "New Task" to get started</p>
+              <p className="mb-2">
+                {showCompleted ? "No completed tasks yet" : "No active tasks"}
+              </p>
+              <p className="text-xs">
+                {showCompleted
+                  ? "Complete some tasks to see them here"
+                  : 'Click "New Task" to get started'}
+              </p>
             </motion.div>
           ) : (
             <AnimatePresence mode="popLayout">
@@ -407,9 +473,9 @@ export function TaskManagementPanel({
                   layout
                   initial={{ opacity: 0, x: -20, scale: 0.95 }}
                   animate={{
-                    opacity: completingId === task.id ? 0.5 : 1,
-                    x: 0,
-                    scale: 1,
+                    opacity: completingId === task.id ? 0 : 1,
+                    x: completingId === task.id ? 100 : 0,
+                    scale: completingId === task.id ? 0.8 : 1,
                     transition: {
                       delay: index * 0.03,
                       type: "spring",
@@ -421,40 +487,71 @@ export function TaskManagementPanel({
                     opacity: 0,
                     x: 100,
                     scale: 0.8,
-                    transition: { duration: 0.3 },
+                    transition: { duration: 0.4 },
                   }}
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  className="p-3 rounded-[var(--radius-lg)] surface-2 hover:surface-3 transition-all group shadow-sm hover:shadow-lg border border-transparent hover:border-[hsl(var(--accent)/0.2)]"
+                  whileHover={{
+                    scale: showCompleted ? 1 : 1.02,
+                    y: showCompleted ? 0 : -2,
+                  }}
+                  className="relative p-3 rounded-[var(--radius-lg)] surface-2 hover:surface-3 transition-all group shadow-sm hover:shadow-lg border border-transparent hover:border-[hsl(var(--accent)/0.2)]"
                 >
+                  {/* Celebration Animation */}
+                  <AnimatePresence>
+                    {celebratingId === task.id && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 2, opacity: 0 }}
+                        transition={{ duration: 0.6 }}
+                        className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
+                      >
+                        <motion.div
+                          animate={{
+                            rotate: [0, 360],
+                            scale: [1, 1.2, 1],
+                          }}
+                          transition={{ duration: 0.6 }}
+                          className="bg-[hsl(var(--success))] rounded-full p-4 shadow-2xl"
+                        >
+                          <CheckCircle2 className="h-12 w-12 text-white" />
+                        </motion.div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
                   <div className="flex items-start gap-3">
                     {/* Checkbox */}
-                    <motion.button
-                      onClick={() => handleToggleComplete(task.id, task.status)}
-                      className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
-                        task.status === "DONE"
-                          ? "bg-[hsl(var(--success))] border-[hsl(var(--success))] shadow-lg shadow-[hsl(var(--success)/0.3)]"
-                          : "border-[hsl(var(--border))] hover:border-[hsl(var(--accent))] hover:shadow-md"
-                      }`}
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <AnimatePresence>
-                        {task.status === "DONE" && (
-                          <motion.div
-                            initial={{ scale: 0, rotate: -180 }}
-                            animate={{ scale: 1, rotate: 0 }}
-                            exit={{ scale: 0, rotate: 180 }}
-                            transition={{
-                              type: "spring",
-                              stiffness: 500,
-                              damping: 15,
-                            }}
-                          >
-                            <Check className="h-3 w-3 text-white" />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.button>
+                    {!showCompleted && (
+                      <motion.button
+                        onClick={() =>
+                          handleToggleComplete(task.id, task.status)
+                        }
+                        className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                          task.status === "DONE"
+                            ? "bg-[hsl(var(--success))] border-[hsl(var(--success))] shadow-lg shadow-[hsl(var(--success)/0.3)]"
+                            : "border-[hsl(var(--border))] hover:border-[hsl(var(--accent))] hover:shadow-md"
+                        }`}
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <AnimatePresence>
+                          {task.status === "DONE" && (
+                            <motion.div
+                              initial={{ scale: 0, rotate: -180 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              exit={{ scale: 0, rotate: 180 }}
+                              transition={{
+                                type: "spring",
+                                stiffness: 500,
+                                damping: 15,
+                              }}
+                            >
+                              <Check className="h-3 w-3 text-white" />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </motion.button>
+                    )}
 
                     {/* Task Content */}
                     <div className="flex-1 min-w-0">
@@ -513,21 +610,25 @@ export function TaskManagementPanel({
                       ) : (
                         <>
                           <div className="flex items-start justify-between gap-2 mb-2">
-                            <h4 className="text-sm font-medium group-hover:text-[hsl(var(--accent))] transition-colors">
+                            <h4
+                              className={`text-sm font-medium group-hover:text-[hsl(var(--accent))] transition-colors ${showCompleted ? "line-through opacity-60" : ""}`}
+                            >
                               {task.title}
                             </h4>
-                            <motion.button
-                              onClick={() => handleStartEdit(task)}
-                              className="opacity-0 group-hover:opacity-100 p-1 rounded-[var(--radius)] hover:bg-[hsl(var(--border))] transition-all"
-                              whileHover={{ scale: 1.2, rotate: 15 }}
-                              whileTap={{ scale: 0.9 }}
-                            >
-                              <Edit2 className="h-3 w-3" />
-                            </motion.button>
+                            {!showCompleted && (
+                              <motion.button
+                                onClick={() => handleStartEdit(task)}
+                                className="opacity-0 group-hover:opacity-100 p-1 rounded-[var(--radius)] hover:bg-[hsl(var(--border))] transition-all"
+                                whileHover={{ scale: 1.2, rotate: 15 }}
+                                whileTap={{ scale: 0.9 }}
+                              >
+                                <Edit2 className="h-3 w-3" />
+                              </motion.button>
+                            )}
                           </div>
 
                           <div className="flex flex-wrap items-center gap-2 text-xs">
-                            {getUrgencyBadge(task)}
+                            {!showCompleted && getUrgencyBadge(task)}
                             <GlowBadge
                               variant={
                                 task.priority >= 4 ? "danger" : "neutral"
@@ -539,6 +640,15 @@ export function TaskManagementPanel({
                               <span className="text-muted flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
                                 {new Date(task.dueDate).toLocaleDateString()}
+                              </span>
+                            )}
+                            {showCompleted && task.completedAt && (
+                              <span className="text-muted flex items-center gap-1">
+                                <CheckCircle2 className="h-3 w-3" />
+                                Completed{" "}
+                                {new Date(
+                                  task.completedAt,
+                                ).toLocaleDateString()}
                               </span>
                             )}
                             {task.project && (
