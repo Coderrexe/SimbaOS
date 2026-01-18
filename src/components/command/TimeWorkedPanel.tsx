@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { Panel } from "./Panel";
-import { GlowBadge } from "./GlowBadge";
 import { Clock } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -99,39 +98,6 @@ export function TimeWorkedPanel() {
               </div>
               <p className="text-sm text-muted">Total focused work time</p>
             </div>
-
-            {/* Motivational Message */}
-            {stats.totalHours === 0 && stats.remainingMinutes === 0 ? (
-              <div className="text-center py-4 text-muted text-sm">
-                <p>Start a Pomodoro session to begin tracking!</p>
-              </div>
-            ) : (
-              <div className="text-center py-2">
-                <GlowBadge variant="success">
-                  {period === "daily" &&
-                    stats.totalHours >= 4 &&
-                    "🔥 Great focus today!"}
-                  {period === "daily" &&
-                    stats.totalHours < 4 &&
-                    stats.totalHours > 0 &&
-                    "Keep going!"}
-                  {period === "weekly" &&
-                    stats.totalHours >= 20 &&
-                    "🚀 Crushing it this week!"}
-                  {period === "weekly" &&
-                    stats.totalHours < 20 &&
-                    stats.totalHours > 0 &&
-                    "Building momentum!"}
-                  {period === "lifetime" &&
-                    stats.totalHours >= 100 &&
-                    "⭐ Century club!"}
-                  {period === "lifetime" &&
-                    stats.totalHours < 100 &&
-                    stats.totalHours > 0 &&
-                    "Every hour counts!"}
-                </GlowBadge>
-              </div>
-            )}
           </motion.div>
         )}
       </div>
