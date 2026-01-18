@@ -254,15 +254,15 @@ export function TaskManagementPanel({
     >
       <div className="space-y-4">
         {/* Sort Options & Action Buttons */}
-        <div className="flex items-center justify-between">
-          <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+          <div className="flex gap-2 overflow-x-auto">
             {!showCompleted &&
               (["urgency", "dueDate", "priority"] as SortOption[]).map(
                 (option) => (
                   <motion.button
                     key={option}
                     onClick={() => setSortBy(option)}
-                    className={`px-3 py-1.5 rounded-[var(--radius)] text-xs font-medium transition-all ${
+                    className={`px-3 py-1.5 rounded-[var(--radius)] text-xs font-medium transition-all whitespace-nowrap ${
                       sortBy === option
                         ? "bg-[hsl(var(--accent))] text-white shadow-lg shadow-[hsl(var(--accent)/0.3)]"
                         : "surface-2 hover:surface-3"
@@ -283,7 +283,7 @@ export function TaskManagementPanel({
           <div className="flex gap-2">
             <motion.button
               onClick={() => setShowCompleted(!showCompleted)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius)] text-xs font-medium transition-all ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius)] text-xs font-medium transition-all whitespace-nowrap ${
                 showCompleted
                   ? "bg-[hsl(var(--success))] text-white shadow-lg shadow-[hsl(var(--success)/0.3)]"
                   : "surface-2 hover:surface-3"
@@ -296,7 +296,10 @@ export function TaskManagementPanel({
               ) : (
                 <Eye className="h-3.5 w-3.5" />
               )}
-              {showCompleted ? "Hide" : `Completed (${completedCount})`}
+              <span className="hidden sm:inline">
+                {showCompleted ? "Hide" : `Completed (${completedCount})`}
+              </span>
+              <span className="sm:hidden">{completedCount}</span>
             </motion.button>
 
             {!showCompleted && (

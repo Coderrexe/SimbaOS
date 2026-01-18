@@ -14,6 +14,7 @@ import {
   BarChart3,
   Zap,
   LogOut,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -34,6 +35,7 @@ const navItems = [
 export function LeftRail() {
   const [expanded, setExpanded] = React.useState(false);
   const [showSignOutConfirm, setShowSignOutConfirm] = React.useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const pathname = usePathname();
 
   const handleSignOut = () => {
@@ -42,6 +44,99 @@ export function LeftRail() {
 
   return (
     <>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setMobileMenuOpen(true)}
+        className="md:hidden fixed top-4 left-4 z-40 p-2 rounded-[var(--radius)] surface-2 border border-[hsl(var(--border))] shadow-lg"
+      >
+        <svg
+          className="h-6 w-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 6h16M4 12h16M4 18h16"
+          />
+        </svg>
+      </button>
+
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Mobile Menu Drawer */}
+      <motion.div
+        initial={{ x: -280 }}
+        animate={{ x: mobileMenuOpen ? 0 : -280 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        className="md:hidden fixed left-0 top-0 h-screen w-64 surface border-r border-[hsl(var(--border))] z-50 flex flex-col"
+      >
+        {/* Close Button */}
+        <div className="flex justify-end p-4">
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            className="p-2 rounded-[var(--radius)] hover:bg-[hsl(var(--surface2))]"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Navigation Items */}
+        <nav className="flex-1 py-4 space-y-1 px-2">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive =
+              pathname === item.href ||
+              (item.href === "/command" && pathname === "/");
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius)] transition-all",
+                  "hover:bg-[hsl(var(--surface2))]",
+                  isActive &&
+                    "bg-[hsl(var(--accent-muted))] text-[hsl(var(--accent))]",
+                )}
+              >
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                <span className="text-sm font-medium">{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Sign Out Button */}
+        <div className="p-2 border-t border-[hsl(var(--border))]">
+          <button
+            onClick={() => {
+              setMobileMenuOpen(false);
+              setShowSignOutConfirm(true);
+            }}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius)] transition-all",
+              "hover:bg-[hsl(var(--danger)/0.1)] hover:text-[hsl(var(--danger))]",
+            )}
+          >
+            <LogOut className="h-5 w-5 flex-shrink-0" />
+            <span className="text-sm font-medium">Sign Out</span>
+          </button>
+        </div>
+      </motion.div>
+
       {/* Sign Out Confirmation Dialog */}
       {showSignOutConfirm && (
         <motion.div
@@ -124,7 +219,7 @@ export function LeftRail() {
         transition={{ duration: 0.2, ease: "easeInOut" }}
         onMouseEnter={() => setExpanded(true)}
         onMouseLeave={() => setExpanded(false)}
-        className="fixed left-0 top-0 h-screen surface border-r border-[hsl(var(--border))] z-50 flex flex-col"
+        className="hidden md:flex fixed left-0 top-0 h-screen surface border-r border-[hsl(var(--border))] z-50 flex-col"
       >
         {/* Navigation Items */}
         <nav className="flex-1 py-4 space-y-1 px-2">

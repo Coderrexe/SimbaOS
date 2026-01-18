@@ -127,32 +127,38 @@ export function JarvisHeader({
         </h1>
 
         {/* Bottom: Message and Stats */}
-        <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
           <p className="text-sm text-muted">{motivationalMessage}</p>
 
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius)] surface-2 whitespace-nowrap">
-              <Calendar className="h-4 w-4 text-[hsl(var(--accent))]" />
-              <span className="text-sm font-medium">{formatDate()}</span>
-            </div>
-
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius)] surface-2 whitespace-nowrap min-w-[80px]">
-              <span className="text-lg">{weather.emoji}</span>
-              <span className="text-sm font-medium">{weather.temp}°C</span>
-            </div>
-
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius)] surface-2 whitespace-nowrap">
-              <CheckSquare className="h-4 w-4 text-[hsl(var(--accent))]" />
-              <span className="text-sm font-medium">
-                {activeTasksCount} tasks
+          <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[var(--radius)] surface-2 whitespace-nowrap text-xs sm:text-sm">
+              <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[hsl(var(--accent))]" />
+              <span className="font-medium hidden sm:inline">
+                {formatDate()}
+              </span>
+              <span className="font-medium sm:hidden">
+                {currentTime.toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                })}
               </span>
             </div>
 
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius)] surface-2 whitespace-nowrap">
-              <Timer className="h-4 w-4 text-[hsl(var(--accent))]" />
-              <span className="text-sm font-medium">
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[var(--radius)] surface-2 whitespace-nowrap text-xs sm:text-sm">
+              <span className="text-base sm:text-lg">{weather.emoji}</span>
+              <span className="font-medium">{weather.temp}°C</span>
+            </div>
+
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[var(--radius)] surface-2 whitespace-nowrap text-xs sm:text-sm">
+              <CheckSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[hsl(var(--accent))]" />
+              <span className="font-medium">{activeTasksCount}</span>
+            </div>
+
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[var(--radius)] surface-2 whitespace-nowrap text-xs sm:text-sm">
+              <Timer className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[hsl(var(--accent))]" />
+              <span className="font-medium">
                 {focusHours > 0 ? `${focusHours}h ` : ""}
-                {focusMins}m today
+                {focusMins}m
               </span>
             </div>
           </div>

@@ -92,8 +92,8 @@ export function CommandPageClient({ data }: { data: CommandData }) {
   ).length;
 
   return (
-    <div className="min-h-screen pb-20">
-      <div className="max-w-[1600px] mx-auto p-6 space-y-6">
+    <div className="min-h-screen pb-24 md:pb-20">
+      <div className="max-w-[1600px] mx-auto p-3 md:p-6 space-y-4 md:space-y-6">
         {/* JARVIS Header */}
         <JarvisHeader
           activeTasksCount={activeTasksCount}
