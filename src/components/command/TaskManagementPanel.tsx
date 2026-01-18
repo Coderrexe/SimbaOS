@@ -23,6 +23,7 @@ interface Task {
   id: string;
   title: string;
   notes?: string;
+  description?: string;
   dueDate?: Date | string;
   priority: number;
   impact: number;
@@ -49,8 +50,10 @@ export function TaskManagementPanel({
   const [error, setError] = React.useState<string | null>(null);
   const [completingId, setCompletingId] = React.useState<string | null>(null);
   const [celebratingId, setCelebratingId] = React.useState<string | null>(null);
+  const [selectedTask, setSelectedTask] = React.useState<Task | null>(null);
   const [newTask, setNewTask] = React.useState({
     title: "",
+    description: "",
     dueDate: "",
     priority: 3,
     impact: 3,
@@ -194,6 +197,7 @@ export function TaskManagementPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: newTask.title,
+          description: newTask.description || null,
           dueDate: newTask.dueDate || null,
           priority: newTask.priority,
           impact: newTask.impact,
@@ -205,7 +209,13 @@ export function TaskManagementPanel({
       if (response.ok) {
         const createdTask = await response.json();
         setTasks([createdTask, ...tasks]);
-        setNewTask({ title: "", dueDate: "", priority: 3, impact: 3 });
+        setNewTask({
+          title: "",
+          description: "",
+          dueDate: "",
+          priority: 3,
+          impact: 3,
+        });
         setShowNewTaskForm(false);
         setError(null);
       } else {
@@ -371,6 +381,22 @@ export function TaskManagementPanel({
               <motion.div
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.12 }}
+              >
+                <textarea
+                  value={newTask.description}
+                  onChange={(e) =>
+                    setNewTask({ ...newTask, description: e.target.value })
+                  }
+                  placeholder="Add a description (optional)"
+                  rows={2}
+                  className="w-full px-3 py-2 rounded-[var(--radius)] bg-[hsl(var(--background))] border border-[hsl(var(--border))] focus:border-[hsl(var(--accent))] focus:ring-2 focus:ring-[hsl(var(--accent)/0.2)] outline-none text-sm transition-all resize-none"
+                />
+              </motion.div>
+
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.15 }}
                 className="grid grid-cols-2 gap-3"
               >
@@ -432,6 +458,7 @@ export function TaskManagementPanel({
                     setShowNewTaskForm(false);
                     setNewTask({
                       title: "",
+                      description: "",
                       dueDate: "",
                       priority: 3,
                       impact: 3,
@@ -606,55 +633,69 @@ export function TaskManagementPanel({
                         </motion.div>
                       ) : (
                         <>
-                          <div className="flex items-start justify-between gap-2 mb-2">
-                            <h4
-                              className={`text-sm font-medium group-hover:text-[hsl(var(--accent))] transition-colors ${showCompleted ? "line-through opacity-60" : ""}`}
-                            >
-                              {task.title}
-                            </h4>
-                            {!showCompleted && (
-                              <motion.button
-                                onClick={() => handleStartEdit(task)}
-                                className="opacity-0 group-hover:opacity-100 p-1 rounded-[var(--radius)] hover:bg-[hsl(var(--border))] transition-all"
-                                whileHover={{ scale: 1.2, rotate: 15 }}
-                                whileTap={{ scale: 0.9 }}
+                          <div
+                            className="cursor-pointer"
+                            onClick={() => setSelectedTask(task)}
+                          >
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <h4
+                                className={`text-sm font-medium group-hover:text-[hsl(var(--accent))] transition-colors ${showCompleted ? "line-through opacity-60" : ""}`}
                               >
-                                <Edit2 className="h-3 w-3" />
-                              </motion.button>
-                            )}
-                          </div>
+                                {task.title}
+                              </h4>
+                              {!showCompleted && (
+                                <motion.button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleStartEdit(task);
+                                  }}
+                                  className="opacity-0 group-hover:opacity-100 p-1 rounded-[var(--radius)] hover:bg-[hsl(var(--border))] transition-all"
+                                  whileHover={{ scale: 1.2, rotate: 15 }}
+                                  whileTap={{ scale: 0.9 }}
+                                >
+                                  <Edit2 className="h-3 w-3" />
+                                </motion.button>
+                              )}
+                            </div>
 
-                          <div className="flex flex-wrap items-center gap-2 text-xs">
-                            {!showCompleted && getUrgencyBadge(task)}
-                            <GlowBadge
-                              variant={
-                                task.priority >= 4 ? "danger" : "neutral"
-                              }
-                            >
-                              P{task.priority}
-                            </GlowBadge>
-                            {task.dueDate && (
-                              <span className="text-muted flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
-                                {new Date(task.dueDate).toLocaleDateString(
-                                  "en-US",
-                                )}
-                              </span>
+                            {task.description && (
+                              <p className="text-xs text-muted mb-2 line-clamp-2">
+                                {task.description}
+                              </p>
                             )}
-                            {showCompleted && task.completedAt && (
-                              <span className="text-muted flex items-center gap-1">
-                                <CheckCircle2 className="h-3 w-3" />
-                                Completed{" "}
-                                {new Date(task.completedAt).toLocaleDateString(
-                                  "en-US",
-                                )}
-                              </span>
-                            )}
-                            {task.project && (
-                              <span className="text-muted">
-                                📁 {task.project.name}
-                              </span>
-                            )}
+
+                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                              {!showCompleted && getUrgencyBadge(task)}
+                              <GlowBadge
+                                variant={
+                                  task.priority >= 4 ? "danger" : "neutral"
+                                }
+                              >
+                                P{task.priority}
+                              </GlowBadge>
+                              {task.dueDate && (
+                                <span className="text-muted flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  {new Date(task.dueDate).toLocaleDateString(
+                                    "en-US",
+                                  )}
+                                </span>
+                              )}
+                              {showCompleted && task.completedAt && (
+                                <span className="text-muted flex items-center gap-1">
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  Completed{" "}
+                                  {new Date(
+                                    task.completedAt,
+                                  ).toLocaleDateString("en-US")}
+                                </span>
+                              )}
+                              {task.project && (
+                                <span className="text-muted">
+                                  📁 {task.project.name}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </>
                       )}
@@ -666,6 +707,169 @@ export function TaskManagementPanel({
           )}
         </div>
       </div>
+
+      {/* Task Detail Modal */}
+      <AnimatePresence>
+        {selectedTask && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+            onClick={() => setSelectedTask(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative overflow-hidden rounded-[var(--radius-lg)] p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto"
+              style={{
+                background:
+                  "linear-gradient(135deg, hsl(var(--surface1)) 0%, hsl(var(--surface2)) 100%)",
+                backdropFilter: "blur(20px)",
+                border: "1px solid hsl(var(--border))",
+                boxShadow: "0 20px 60px hsl(var(--shadow) / 0.3)",
+              }}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setSelectedTask(null)}
+                className="absolute top-4 right-4 p-2 rounded-[var(--radius)] hover:bg-[hsl(var(--surface2))] transition-all"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              {/* Task Content */}
+              <div className="space-y-4">
+                {/* Title */}
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">
+                    {selectedTask.title}
+                  </h2>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {getUrgencyBadge(selectedTask)}
+                    <GlowBadge
+                      variant={
+                        selectedTask.priority >= 4 ? "danger" : "neutral"
+                      }
+                    >
+                      P{selectedTask.priority}
+                    </GlowBadge>
+                    {selectedTask.status === "DONE" && (
+                      <GlowBadge variant="success">Completed</GlowBadge>
+                    )}
+                  </div>
+                </div>
+
+                {/* Description */}
+                {selectedTask.description && (
+                  <div>
+                    <h3 className="text-sm font-medium text-muted mb-2">
+                      Description
+                    </h3>
+                    <p className="text-sm whitespace-pre-wrap">
+                      {selectedTask.description}
+                    </p>
+                  </div>
+                )}
+
+                {/* Metadata */}
+                <div className="grid grid-cols-2 gap-4 p-4 rounded-[var(--radius)] surface-2">
+                  {selectedTask.dueDate && (
+                    <div>
+                      <p className="text-xs text-muted mb-1">Due Date</p>
+                      <p className="text-sm font-medium flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        {new Date(selectedTask.dueDate).toLocaleDateString(
+                          "en-US",
+                          {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                          },
+                        )}
+                      </p>
+                    </div>
+                  )}
+                  {selectedTask.completedAt && (
+                    <div>
+                      <p className="text-xs text-muted mb-1">Completed</p>
+                      <p className="text-sm font-medium flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4" />
+                        {new Date(selectedTask.completedAt).toLocaleDateString(
+                          "en-US",
+                          {
+                            month: "short",
+                            day: "numeric",
+                          },
+                        )}
+                      </p>
+                    </div>
+                  )}
+                  {selectedTask.project && (
+                    <div>
+                      <p className="text-xs text-muted mb-1">Project</p>
+                      <p className="text-sm font-medium">
+                        📁 {selectedTask.project.name}
+                      </p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-xs text-muted mb-1">Priority</p>
+                    <p className="text-sm font-medium">
+                      P{selectedTask.priority}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3 pt-4 border-t border-[hsl(var(--border))]">
+                  {selectedTask.status !== "DONE" ? (
+                    <motion.button
+                      onClick={() => {
+                        handleToggleComplete(selectedTask.id);
+                        setSelectedTask(null);
+                      }}
+                      className="flex-1 px-4 py-2.5 rounded-[var(--radius)] bg-[hsl(var(--success))] text-white font-medium shadow-lg shadow-[hsl(var(--success)/0.3)] hover:opacity-90 transition-all"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <Check className="inline h-4 w-4 mr-2" />
+                      Mark as Done
+                    </motion.button>
+                  ) : (
+                    <motion.button
+                      onClick={() => {
+                        handleToggleComplete(selectedTask.id);
+                        setSelectedTask(null);
+                      }}
+                      className="flex-1 px-4 py-2.5 rounded-[var(--radius)] surface-2 hover:surface-3 font-medium transition-all"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Mark as Not Done
+                    </motion.button>
+                  )}
+                  <motion.button
+                    onClick={() => {
+                      setSelectedTask(null);
+                      handleStartEdit(selectedTask);
+                    }}
+                    className="flex-1 px-4 py-2.5 rounded-[var(--radius)] bg-[hsl(var(--accent))] text-white font-medium shadow-lg shadow-[hsl(var(--accent)/0.3)] hover:opacity-90 transition-all"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Edit2 className="inline h-4 w-4 mr-2" />
+                    Edit Task
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar {

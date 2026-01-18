@@ -80,6 +80,7 @@ export async function POST(req: Request) {
       data: {
         title: data.title,
         notes: data.notes || null,
+        description: data.description || null,
         dueDate,
         priority: data.priority || 3,
         impact: data.impact || 3,
