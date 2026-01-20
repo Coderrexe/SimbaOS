@@ -15,11 +15,10 @@ export function RightNowOverlay() {
   // Recommended task (would come from actual data)
   const recommendedTask = {
     id: "1",
-    title: "Complete authentication flow implementation",
-    why: "High priority, due in 2 days, high energy available now",
-    impact: "Unblocks MVP launch",
-    estimatedTime: 120,
-    notes: "Focus on OAuth integration and session management",
+    title: "Your most important task",
+    why: "High priority, optimal time to focus",
+    impact: "Move your most critical project forward",
+    estimatedTime: 25,
   };
 
   React.useEffect(() => {
@@ -119,13 +118,6 @@ export function RightNowOverlay() {
                       <div className="text-sm">{recommendedTask.impact}</div>
                     </div>
                   </div>
-
-                  {recommendedTask.notes && (
-                    <div className="mt-3 p-3 rounded-[var(--radius)] bg-[hsl(var(--surface3))]">
-                      <div className="text-xs text-muted mb-1">Notes</div>
-                      <div className="text-sm">{recommendedTask.notes}</div>
-                    </div>
-                  )}
                 </div>
 
                 <div className="flex gap-2">
