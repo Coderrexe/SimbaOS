@@ -20,5 +20,12 @@ export default async function NotesPage() {
     },
   });
 
-  return <NotesPageClient initialNotes={notes} />;
+  // Convert Date objects to strings for client component
+  const serializedNotes = notes.map((note) => ({
+    ...note,
+    createdAt: note.createdAt.toISOString(),
+    updatedAt: note.updatedAt.toISOString(),
+  }));
+
+  return <NotesPageClient initialNotes={serializedNotes} />;
 }

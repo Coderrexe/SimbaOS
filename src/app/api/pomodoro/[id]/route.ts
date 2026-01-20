@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -13,6 +13,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const body = await req.json();
     const updateData: any = {};
 
@@ -30,7 +31,7 @@ export async function PATCH(
 
     const pomodoroSession = await prisma.pomodoroSession.update({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
       data: updateData,
