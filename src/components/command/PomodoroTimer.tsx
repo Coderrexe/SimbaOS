@@ -299,7 +299,7 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
         {/* Apple-like Segmented Control */}
         <div className="relative p-1 rounded-[var(--radius-lg)] surface-2 shadow-inner">
           <motion.div
-            className="absolute top-1 bottom-1 rounded-[var(--radius)] bg-gradient-to-r from-[hsl(var(--accent))] to-[hsl(var(--accent-secondary))] shadow-lg"
+            className="absolute top-1 bottom-1 rounded-[var(--radius)] bg-[hsl(var(--accent))] shadow-lg"
             initial={false}
             animate={{
               left: mode === "pomodoro" ? "4px" : "50%",
@@ -314,7 +314,7 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
               className={`relative z-10 px-4 py-2 rounded-[var(--radius)] text-sm font-medium transition-colors ${
                 mode === "pomodoro"
                   ? "text-white"
-                  : "text-muted hover:text-foreground"
+                  : "text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text))]"
               }`}
               whileTap={{ scale: 0.97 }}
             >
@@ -327,7 +327,7 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
               className={`relative z-10 px-4 py-2 rounded-[var(--radius)] text-sm font-medium transition-colors ${
                 mode === "elapsed"
                   ? "text-white"
-                  : "text-muted hover:text-foreground"
+                  : "text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text))]"
               }`}
               whileTap={{ scale: 0.97 }}
             >

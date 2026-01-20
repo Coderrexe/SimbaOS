@@ -321,7 +321,7 @@ export function TaskManagementPanel({
             {!showCompleted && (
               <motion.button
                 onClick={() => setShowNewTaskForm(!showNewTaskForm)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius)] bg-gradient-to-r from-[hsl(var(--accent))] to-[hsl(var(--accent-secondary))] text-white hover:opacity-90 transition-opacity text-xs font-medium shadow-lg shadow-[hsl(var(--accent)/0.3)]"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-[var(--radius)] bg-[hsl(var(--accent))] text-white hover:opacity-90 transition-all text-xs font-medium shadow-lg shadow-[hsl(var(--accent)/0.3)]"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
               >

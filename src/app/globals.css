@@ -5,29 +5,28 @@
 @layer base {
   :root {
     /* Luxury Technical Instrument - Light Mode (Premium) */
-    --bg: 220 20% 97%;
+    --bg: 240 20% 98%;
     --surface: 0 0% 100%;
-    --surface2: 220 20% 98%;
-    --surface3: 220 20% 96%;
-    --border: 220 13% 88%;
-    --border-subtle: 220 13% 93%;
-    --text: 220 20% 10%;
-    --text-muted: 220 13% 45%;
-    --text-subtle: 220 10% 60%;
-    --accent: 262 80% 55%;
-    --accent2: 195 100% 45%;
-    --accent-muted: 262 80% 96%;
-    --danger: 0 72% 51%;
-    --success: 142 76% 36%;
+    --surface2: 240 25% 97%;
+    --surface3: 240 20% 94%;
+    --border: 240 15% 85%;
+    --border-subtle: 240 15% 91%;
+    --text: 240 25% 8%;
+    --text-muted: 240 10% 40%;
+    --text-subtle: 240 8% 55%;
+    --accent: 262 83% 58%;
+    --accent2: 195 100% 50%;
+    --accent-muted: 262 90% 95%;
+    --danger: 0 84% 60%;
+    --success: 142 71% 45%;
     --warning: 38 92% 50%;
 
     /* Enhanced elevation for light mode */
-    --shadow1: 0 1px 3px 0 rgb(0 0 0 / 0.08);
-    --shadow2:
-      0 4px 8px -2px rgb(0 0 0 / 0.12), 0 2px 4px -2px rgb(0 0 0 / 0.08);
+    --shadow1: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    --shadow2: 0 4px 12px -2px rgb(0 0 0 / 0.15), 0 2px 6px -2px rgb(0 0 0 / 0.1);
     --shadow3:
-      0 12px 20px -4px rgb(0 0 0 / 0.15), 0 4px 8px -4px rgb(0 0 0 / 0.1);
-    --shadow-glow: 0 0 25px -5px hsl(var(--accent) / 0.35);
+      0 16px 24px -4px rgb(0 0 0 / 0.2), 0 4px 8px -4px rgb(0 0 0 / 0.12);
+    --shadow-glow: 0 0 30px -5px hsl(var(--accent) / 0.4);
 
     /* Radii tokens */
     --radius-sm: 0.375rem;
@@ -107,31 +106,36 @@
 @layer utilities {
   /* Glass morphism - restrained */
   .glass {
-    background: hsl(var(--surface) / 0.7);
+    background: hsl(var(--surface) / 0.8);
     backdrop-filter: blur(12px) saturate(180%);
-    border: 1px solid hsl(var(--border) / 0.5);
+    border: 1px solid hsl(var(--border) / 0.6);
+    box-shadow: var(--shadow1);
   }
 
   .glass-strong {
-    background: hsl(var(--surface) / 0.9);
+    background: hsl(var(--surface) / 0.95);
     backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid hsl(var(--border));
+    box-shadow: var(--shadow2);
   }
 
   /* Surface elevation system */
   .surface {
     background: hsl(var(--surface));
     border: 1px solid hsl(var(--border-subtle));
+    box-shadow: var(--shadow1);
   }
 
   .surface-2 {
     background: hsl(var(--surface2));
     border: 1px solid hsl(var(--border));
+    box-shadow: var(--shadow1);
   }
 
   .surface-3 {
     background: hsl(var(--surface3));
     border: 1px solid hsl(var(--border));
+    box-shadow: var(--shadow2);
   }
 
   /* Glow effects - subtle */
@@ -187,9 +191,13 @@
     content: "";
     position: absolute;
     inset: 0;
-    opacity: 0.015;
+    opacity: 0.025;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
     pointer-events: none;
+  }
+
+  .dark .noise-bg::before {
+    opacity: 0.015;
   }
 }
 
