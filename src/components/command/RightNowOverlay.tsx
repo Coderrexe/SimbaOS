@@ -58,6 +58,18 @@ export function RightNowOverlay() {
     // TODO: Mark task as complete
   };
 
+  // ESC key handler
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && showRightNow) {
+        setShowRightNow(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showRightNow, setShowRightNow]);
+
   return (
     <AnimatePresence>
       {showRightNow && (
@@ -65,16 +77,19 @@ export function RightNowOverlay() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[hsl(var(--bg))] backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[hsl(var(--bg))] backdrop-blur-sm p-4 overflow-y-auto"
         >
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="w-full max-w-2xl mx-4"
+            className="w-full max-w-2xl my-auto"
           >
-            <Surface level={2} className="p-8 relative">
+            <Surface
+              level={2}
+              className="p-8 relative max-h-[90vh] overflow-y-auto"
+            >
               {/* Close button */}
               <button
                 onClick={() => setShowRightNow(false)}
