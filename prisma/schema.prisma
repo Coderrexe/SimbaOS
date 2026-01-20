@@ -23,6 +23,7 @@ model User {
   weeklyReviews WeeklyReview[]
   metrics       Metric[]
   pomodoroSessions PomodoroSession[]
+  notes         Note[]
   
   @@map("users")
 }
@@ -253,4 +254,18 @@ model PomodoroSession {
 enum PomodoroType {
   WORK
   BREAK
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  content   String   @db.Text
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([userId, createdAt])
+  @@map("notes")
 }
