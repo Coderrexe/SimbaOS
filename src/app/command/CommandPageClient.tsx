@@ -13,6 +13,8 @@ import { PomodoroTimer } from "@/components/command/PomodoroTimer";
 import { TimeWorkedPanel } from "@/components/command/TimeWorkedPanel";
 import { TaskManagementPanel } from "@/components/command/TaskManagementPanel";
 import { JarvisHeader } from "@/components/command/JarvisHeader";
+import { NotesPanel } from "@/components/command/NotesPanel";
+import { QuickNoteModal } from "@/components/command/QuickNoteModal";
 import {
   Target,
   Zap,
@@ -39,6 +41,20 @@ interface CommandData {
 
 export function CommandPageClient({ data }: { data: CommandData }) {
   const { setSelection } = useCommand();
+  const [isQuickNoteOpen, setIsQuickNoteOpen] = React.useState(false);
+
+  // Command+B keyboard shortcut for quick notes
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "b") {
+        e.preventDefault();
+        setIsQuickNoteOpen(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Process metrics for trajectory
   const weekMetrics = React.useMemo(() => {
@@ -106,8 +122,9 @@ export function CommandPageClient({ data }: { data: CommandData }) {
           <PomodoroTimer onSessionComplete={handlePomodoroComplete} />
         </div>
 
-        {/* Time Worked Panel (Full Width) */}
-        <div className="grid grid-cols-1 gap-6">
+        {/* Time Worked + Notes (Side by Side) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <NotesPanel />
           <TimeWorkedPanel />
         </div>
 
@@ -149,6 +166,12 @@ export function CommandPageClient({ data }: { data: CommandData }) {
           />
         </div>
       </div>
+
+      {/* Quick Note Modal */}
+      <QuickNoteModal
+        isOpen={isQuickNoteOpen}
+        onClose={() => setIsQuickNoteOpen(false)}
+      />
     </div>
   );
 }

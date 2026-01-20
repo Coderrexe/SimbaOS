@@ -13,6 +13,7 @@ import {
   Brain,
   Sparkles,
   Play,
+  StickyNote,
 } from "lucide-react";
 
 interface Command {
@@ -32,6 +33,24 @@ export function CommandPalette() {
 
   // Global commands
   const globalCommands: Command[] = [
+    {
+      id: "quick-note",
+      label: "Quick Note (⌘B)",
+      icon: StickyNote,
+      action: () => {
+        setOpen(false);
+        // Trigger the quick note modal via keyboard event
+        window.dispatchEvent(
+          new KeyboardEvent("keydown", {
+            key: "b",
+            metaKey: true,
+            bubbles: true,
+          }),
+        );
+      },
+      category: "Create",
+      keywords: ["note", "write", "capture", "thought", "idea"],
+    },
     {
       id: "right-now",
       label: "Start Right Now Focus",

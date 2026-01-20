@@ -15,6 +15,7 @@ import {
   Zap,
   LogOut,
   X,
+  StickyNote,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -24,6 +25,7 @@ const navItems = [
   { icon: Zap, label: "Command", href: "/command" },
   { icon: Calendar, label: "Today", href: "/today" },
   { icon: CheckSquare, label: "Tasks", href: "/tasks" },
+  { icon: StickyNote, label: "Notes", href: "/notes" },
   { icon: Target, label: "Goals", href: "/goals" },
   { icon: Activity, label: "Habits", href: "/habits" },
   { icon: FileText, label: "Reviews", href: "/reviews" },

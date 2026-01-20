@@ -104,7 +104,7 @@ export function NotesPanel() {
 
   return (
     <Panel
-      title="📝 Quick Notes"
+      title="📝 Notes"
       subtitle="Press ⌘B to capture thoughts instantly"
     >
       <div className="space-y-3">
