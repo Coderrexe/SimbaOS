@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Play, Pause, SkipForward, Target, Clock, Zap } from "lucide-react";
 import { useCommand } from "@/lib/command-context";
@@ -10,9 +10,9 @@ import { GlowBadge } from "./GlowBadge";
 export function RightNowOverlay() {
   const { showRightNow, setShowRightNow, sharedTimer, setSharedTimer } =
     useCommand();
-  const [sessionId, setSessionId] = React.useState<string | null>(null);
-  const [accumulatedSeconds, setAccumulatedSeconds] = React.useState(0);
-  const lastSaveTimeRef = React.useRef(0);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [accumulatedSeconds, setAccumulatedSeconds] = useState(0);
+  const lastSaveTimeRef = useRef(0);
 
   // Recommended task (would come from actual data)
   const recommendedTask = {
@@ -24,12 +24,12 @@ export function RightNowOverlay() {
   };
 
   // Sync with shared timer
-  React.useEffect(() => {
+  useEffect(() => {
     setSessionId(sharedTimer.sessionId);
   }, [sharedTimer]);
 
   // Auto-save progress
-  React.useEffect(() => {
+  useEffect(() => {
     if (!sharedTimer.isRunning || !sharedTimer.sessionId) return;
 
     const saveInterval = setInterval(async () => {
@@ -56,7 +56,7 @@ export function RightNowOverlay() {
   }, [sharedTimer.isRunning, sharedTimer.sessionId, accumulatedSeconds]);
 
   // Track accumulated time
-  React.useEffect(() => {
+  useEffect(() => {
     if (!sharedTimer.isRunning) return;
 
     const interval = setInterval(() => {
@@ -145,7 +145,7 @@ export function RightNowOverlay() {
   };
 
   // ESC key handler
-  React.useEffect(() => {
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && showRightNow) {
         setShowRightNow(false);

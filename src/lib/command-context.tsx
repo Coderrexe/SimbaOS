@@ -1,6 +1,13 @@
 "use client";
 
-import * as React from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from "react";
 
 export type Mode = "plan" | "execute" | "reflect";
 
@@ -39,24 +46,24 @@ interface CommandContextValue {
   }) => void;
 }
 
-const CommandContext = React.createContext<CommandContextValue | undefined>(
+const CommandContext = createContext<CommandContextValue | undefined>(
   undefined,
 );
 
-export function CommandProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setModeState] = React.useState<Mode>("plan");
-  const [selection, setSelection] = React.useState<Selection>({
+export function CommandProvider({ children }: { children: ReactNode }) {
+  const [mode, setModeState] = useState<Mode>("plan");
+  const [selection, setSelection] = useState<Selection>({
     type: null,
     id: null,
   });
-  const [showRightNow, setShowRightNow] = React.useState(false);
-  const [focusTimer, setFocusTimer] = React.useState({
+  const [showRightNow, setShowRightNow] = useState(false);
+  const [focusTimer, setFocusTimer] = useState({
     active: false,
     taskId: null as string | null,
     startTime: null as number | null,
     duration: 25,
   });
-  const [sharedTimer, setSharedTimer] = React.useState({
+  const [sharedTimer, setSharedTimer] = useState({
     isRunning: false,
     timeLeft: 25 * 60,
     sessionId: null as string | null,
@@ -64,19 +71,19 @@ export function CommandProvider({ children }: { children: React.ReactNode }) {
   });
 
   // Persist mode to localStorage
-  React.useEffect(() => {
+  useEffect(() => {
     const savedMode = localStorage.getItem("simbaos-mode");
     if (savedMode && ["plan", "execute", "reflect"].includes(savedMode)) {
       setModeState(savedMode as Mode);
     }
   }, []);
 
-  const setMode = React.useCallback((newMode: Mode) => {
+  const setMode = useCallback((newMode: Mode) => {
     setModeState(newMode);
     localStorage.setItem("simbaos-mode", newMode);
   }, []);
 
-  const startFocus = React.useCallback((taskId: string, duration: number) => {
+  const startFocus = useCallback((taskId: string, duration: number) => {
     setFocusTimer({
       active: true,
       taskId,
@@ -85,7 +92,7 @@ export function CommandProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const stopFocus = React.useCallback(() => {
+  const stopFocus = useCallback(() => {
     setFocusTimer({
       active: false,
       taskId: null,
@@ -116,7 +123,7 @@ export function CommandProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useCommand() {
-  const context = React.useContext(CommandContext);
+  const context = useContext(CommandContext);
   if (!context) {
     throw new Error("useCommand must be used within CommandProvider");
   }

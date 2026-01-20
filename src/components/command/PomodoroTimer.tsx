@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useState, useEffect, useRef } from "react";
 import { Panel } from "./Panel";
 import { GlowBadge } from "./GlowBadge";
 import { Play, Pause, RotateCcw, Timer, Coffee, Zap } from "lucide-react";
@@ -19,10 +19,10 @@ const BREAK_DURATION = 5 * 60;
 
 export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
   const { sharedTimer, setSharedTimer } = useCommand();
-  const startSoundRef = React.useRef<HTMLAudioElement | null>(null);
-  const endSoundRef = React.useRef<HTMLAudioElement | null>(null);
+  const startSoundRef = useRef<HTMLAudioElement | null>(null);
+  const endSoundRef = useRef<HTMLAudioElement | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Create audio elements on client side only
     startSoundRef.current = new Audio(
       "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGGe77eeeTRAMUKfj8LZjHAY4ktfyy3ksBSR3x/DdkEAKFF606+uoVRQKRp/g8r5sIQUrgs7y2Ik2CBhnu+3nnk0QDFCn4/C2YxwGOJLX8st5LAUkd8fw3ZBACg==",
@@ -32,21 +32,21 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
     );
   }, []);
 
-  const [mode, setMode] = React.useState<TimerMode>("pomodoro");
-  const [phase, setPhase] = React.useState<PomodoroPhase>(sharedTimer.phase);
-  const [timeLeft, setTimeLeft] = React.useState(sharedTimer.timeLeft);
-  const [elapsedTime, setElapsedTime] = React.useState(0);
-  const [isRunning, setIsRunning] = React.useState(sharedTimer.isRunning);
-  const [sessionId, setSessionId] = React.useState<string | null>(
+  const [mode, setMode] = useState<TimerMode>("pomodoro");
+  const [phase, setPhase] = useState<PomodoroPhase>(sharedTimer.phase);
+  const [timeLeft, setTimeLeft] = useState(sharedTimer.timeLeft);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [isRunning, setIsRunning] = useState(sharedTimer.isRunning);
+  const [sessionId, setSessionId] = useState<string | null>(
     sharedTimer.sessionId,
   );
-  const [accumulatedSeconds, setAccumulatedSeconds] = React.useState(0);
-  const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
-  const autoSaveRef = React.useRef<NodeJS.Timeout | null>(null);
-  const lastSaveTimeRef = React.useRef(0);
+  const [accumulatedSeconds, setAccumulatedSeconds] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const autoSaveRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSaveTimeRef = useRef(0);
 
   // Sync with shared timer state (incoming changes from RightNow overlay)
-  React.useEffect(() => {
+  useEffect(() => {
     setIsRunning(sharedTimer.isRunning);
     setTimeLeft(sharedTimer.timeLeft);
     setSessionId(sharedTimer.sessionId);
@@ -54,7 +54,7 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
   }, [sharedTimer]);
 
   // Sync local timer state to shared context (outgoing changes to RightNow overlay)
-  React.useEffect(() => {
+  useEffect(() => {
     if (mode === "pomodoro") {
       setSharedTimer({
         isRunning,
@@ -65,7 +65,7 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
     }
   }, [isRunning, timeLeft, sessionId, phase, mode, setSharedTimer]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isRunning) {
       intervalRef.current = setInterval(() => {
         if (mode === "pomodoro") {
