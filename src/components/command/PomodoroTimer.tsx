@@ -298,41 +298,57 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
       <div className="space-y-6">
         {/* Apple-like Segmented Control */}
         <div className="relative p-1 rounded-[var(--radius-lg)] surface-2 shadow-inner">
-          <motion.div
-            className="absolute top-1 bottom-1 rounded-[var(--radius)] bg-[hsl(var(--accent))] shadow-lg"
-            initial={false}
-            animate={{
-              left: mode === "pomodoro" ? "4px" : "50%",
-              right: mode === "pomodoro" ? "50%" : "4px",
-            }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          />
-
           <div className="relative grid grid-cols-2 gap-1">
             <motion.button
               onClick={() => handleModeChange("pomodoro")}
-              className={`relative z-10 px-4 py-2 rounded-[var(--radius)] text-sm font-medium transition-colors ${
+              className={`relative px-4 py-2 rounded-[var(--radius)] text-sm font-medium transition-colors duration-200 ${
                 mode === "pomodoro"
                   ? "text-white"
                   : "text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text))]"
               }`}
               whileTap={{ scale: 0.97 }}
             >
-              <Timer className="inline h-4 w-4 mr-2" />
-              Pomodoro
+              {mode === "pomodoro" && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute inset-0 rounded-[var(--radius)] bg-[hsl(var(--accent))] shadow-lg"
+                  transition={{
+                    type: "spring",
+                    stiffness: 500,
+                    damping: 35,
+                  }}
+                />
+              )}
+              <span className="relative z-10 flex items-center justify-center">
+                <Timer className="h-4 w-4 mr-2" />
+                Pomodoro
+              </span>
             </motion.button>
 
             <motion.button
               onClick={() => handleModeChange("elapsed")}
-              className={`relative z-10 px-4 py-2 rounded-[var(--radius)] text-sm font-medium transition-colors ${
+              className={`relative px-4 py-2 rounded-[var(--radius)] text-sm font-medium transition-colors duration-200 ${
                 mode === "elapsed"
                   ? "text-white"
                   : "text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text))]"
               }`}
               whileTap={{ scale: 0.97 }}
             >
-              <Zap className="inline h-4 w-4 mr-2" />
-              Elapsed
+              {mode === "elapsed" && (
+                <motion.div
+                  layoutId="activeTab"
+                  className="absolute inset-0 rounded-[var(--radius)] bg-[hsl(var(--accent))] shadow-lg"
+                  transition={{
+                    type: "spring",
+                    stiffness: 500,
+                    damping: 35,
+                  }}
+                />
+              )}
+              <span className="relative z-10 flex items-center justify-center">
+                <Zap className="h-4 w-4 mr-2" />
+                Elapsed
+              </span>
             </motion.button>
           </div>
         </div>
