@@ -1,12 +1,55 @@
-# SimbaOS - Personal Command Center
-
+<p align="center">
+  <a href="#">
+     
+  </a>
+  <p align="center">
+   <img width="125" src="images/logo.png" alt="Logo">
+  </p>
+  <h1 align="center"><b>SimbaOS</b></h1>
+  <p align="center">
+  The Everything Dashboard
+    <br />
+    <a href="https://simbaos.vercel.app/"><strong>Try It Out!</strong></a>
+    <br />
+    <br />
+    <b>Available for </b>
+    Web & Mobile
+  </p>
+</p>
 A production-grade personal dashboard for founders and builders. Track goals, tasks, habits, and weekly reviews in one place with intelligent prioritization and momentum tracking.
-
-## Screenshots
+<br/>
+<br/>
 
 ![SimbaOS Command Center](images/app1.png)
 
-_The command center with JARVIS-style header, task management, and Pomodoro timer_
+![](images/app2.png)
+
+![](images/app3.png)
+
+![](images/app4.png)
+
+![](images/app5.png)
+
+![](images/app6.png)
+
+
+<div style="display: flex; justify-content: space-between; gap: 10px; width: 100%;">
+  <img style="width: 49%;" src="images/app7.png" alt="SimbaOS Feature 7" />
+  <img style="width: 49%;" src="images/app8.png" alt="SimbaOS Feature 8" />
+</div>
+
+## Tech Stack
+
+- **Frontend**: Next.js 15 (App Router), React 19, TypeScript
+- **Styling**: TailwindCSS with modern glassmorphic design system
+- **Animations**: Framer Motion for complex animations and micro-interactions
+- **UI Components**: Radix UI primitives with custom styling
+- **Database**: PostgreSQL (Neon/Supabase/Railway compatible)
+- **ORM**: Prisma
+- **Auth**: NextAuth.js with Google OAuth + credentials provider
+- **Icons**: Lucide React
+- **Charts**: Recharts
+- **Deployment**: Vercel
 
 ## Features
 
@@ -70,19 +113,6 @@ Weekly score (0-100) based on:
 - Sleep penalty if avg < 7h
 - Exercise bonus
 - Transparent formula with tunable constants
-
-## Tech Stack
-
-- **Frontend**: Next.js 15 (App Router), React 19, TypeScript
-- **Styling**: TailwindCSS with modern glassmorphic design system
-- **Animations**: Framer Motion for complex animations and micro-interactions
-- **UI Components**: Radix UI primitives with custom styling
-- **Database**: PostgreSQL (Neon/Supabase/Railway compatible)
-- **ORM**: Prisma
-- **Auth**: NextAuth.js with Google OAuth + credentials provider
-- **Icons**: Lucide React
-- **Charts**: Recharts
-- **Deployment**: Vercel-ready
 
 ## Getting Started
 
@@ -351,35 +381,9 @@ rm -rf .next
 npm run build
 ```
 
-## Roadmap
-
-- [ ] Command Palette (Cmd+K) with fuzzy search
-- [ ] Calendar integrations (Google Calendar, Outlook)
-- [ ] Mobile app (React Native)
-- [ ] AI-powered suggestions
-- [ ] Team/collaboration features
-- [ ] Public API
-- [ ] Zapier/Make integrations
-- [ ] Weekly email digest
-- [ ] Dark/light theme toggle
-
-## Philosophy
-
-SimbaOS is designed around these principles:
-
-1. **High signal, low friction**: Capture should be instant, reviews should be quick
-2. **Inputs over outcomes**: Track what you control (hours worked) not just results
-3. **Transparency**: Show the formulas, make algorithms tunable
-4. **Single source of truth**: One place for everything that matters
-5. **Founder-optimized**: Built for builders shipping products, not productivity hobbyists
-
 ## Contributing
 
 This is a personal project, but suggestions and bug reports are welcome via issues.
-
-## License
-
-MIT License - feel free to fork and customize for your own use.
 
 ## Support
 
