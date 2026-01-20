@@ -24,6 +24,19 @@ interface CommandContextValue {
   };
   startFocus: (taskId: string, duration: number) => void;
   stopFocus: () => void;
+  // Shared Pomodoro timer state
+  sharedTimer: {
+    isRunning: boolean;
+    timeLeft: number;
+    sessionId: string | null;
+    phase: "work" | "break";
+  };
+  setSharedTimer: (timer: {
+    isRunning: boolean;
+    timeLeft: number;
+    sessionId: string | null;
+    phase: "work" | "break";
+  }) => void;
 }
 
 const CommandContext = React.createContext<CommandContextValue | undefined>(
@@ -42,6 +55,12 @@ export function CommandProvider({ children }: { children: React.ReactNode }) {
     taskId: null as string | null,
     startTime: null as number | null,
     duration: 25,
+  });
+  const [sharedTimer, setSharedTimer] = React.useState({
+    isRunning: false,
+    timeLeft: 25 * 60,
+    sessionId: null as string | null,
+    phase: "work" as "work" | "break",
   });
 
   // Persist mode to localStorage
@@ -87,6 +106,8 @@ export function CommandProvider({ children }: { children: React.ReactNode }) {
         focusTimer,
         startFocus,
         stopFocus,
+        sharedTimer,
+        setSharedTimer,
       }}
     >
       {children}

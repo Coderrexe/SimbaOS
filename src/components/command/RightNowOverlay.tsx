@@ -8,9 +8,11 @@ import { Surface } from "./Surface";
 import { GlowBadge } from "./GlowBadge";
 
 export function RightNowOverlay() {
-  const { showRightNow, setShowRightNow, focusTimer, startFocus, stopFocus } =
+  const { showRightNow, setShowRightNow, sharedTimer, setSharedTimer } =
     useCommand();
-  const [timeLeft, setTimeLeft] = React.useState(25 * 60); // 25 minutes in seconds
+  const [sessionId, setSessionId] = React.useState<string | null>(null);
+  const [accumulatedSeconds, setAccumulatedSeconds] = React.useState(0);
+  const lastSaveTimeRef = React.useRef(0);
 
   // Recommended task (would come from actual data)
   const recommendedTask = {
@@ -21,25 +23,48 @@ export function RightNowOverlay() {
     estimatedTime: 25,
   };
 
+  // Sync with shared timer
   React.useEffect(() => {
-    if (!focusTimer.active) return;
+    setSessionId(sharedTimer.sessionId);
+  }, [sharedTimer]);
+
+  // Auto-save progress
+  React.useEffect(() => {
+    if (!sharedTimer.isRunning || !sharedTimer.sessionId) return;
+
+    const saveInterval = setInterval(async () => {
+      const minutes = Math.floor(accumulatedSeconds / 60);
+      if (minutes > 0 && minutes !== lastSaveTimeRef.current) {
+        try {
+          await fetch(`/api/pomodoro/${sharedTimer.sessionId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              duration: minutes,
+              completedAt: null,
+            }),
+          });
+          lastSaveTimeRef.current = minutes;
+          window.dispatchEvent(new Event("pomodoro-complete"));
+        } catch (error) {
+          console.error("Error saving progress:", error);
+        }
+      }
+    }, 10000);
+
+    return () => clearInterval(saveInterval);
+  }, [sharedTimer.isRunning, sharedTimer.sessionId, accumulatedSeconds]);
+
+  // Track accumulated time
+  React.useEffect(() => {
+    if (!sharedTimer.isRunning) return;
 
     const interval = setInterval(() => {
-      const elapsed = Math.floor(
-        (Date.now() - (focusTimer.startTime || 0)) / 1000,
-      );
-      const remaining = focusTimer.duration * 60 - elapsed;
-
-      if (remaining <= 0) {
-        stopFocus();
-        setTimeLeft(25 * 60);
-      } else {
-        setTimeLeft(remaining);
-      }
+      setAccumulatedSeconds((prev) => prev + 1);
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [focusTimer, stopFocus]);
+  }, [sharedTimer.isRunning]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -47,15 +72,76 @@ export function RightNowOverlay() {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleStart = () => {
-    startFocus(recommendedTask.id, 25);
-    setTimeLeft(25 * 60);
+  const handleStart = async () => {
+    if (!sharedTimer.isRunning) {
+      // Create new session
+      const response = await fetch("/api/pomodoro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "WORK",
+          duration: 0,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSessionId(data.id);
+        setAccumulatedSeconds(0);
+        lastSaveTimeRef.current = 0;
+        setSharedTimer({
+          isRunning: true,
+          timeLeft: 25 * 60,
+          sessionId: data.id,
+          phase: "work",
+        });
+      }
+    } else {
+      // Pause
+      const minutes = Math.floor(accumulatedSeconds / 60);
+      if (minutes > 0 && sharedTimer.sessionId) {
+        await fetch(`/api/pomodoro/${sharedTimer.sessionId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            duration: minutes,
+            completedAt: null,
+          }),
+        });
+        window.dispatchEvent(new Event("pomodoro-complete"));
+      }
+      setSharedTimer({
+        ...sharedTimer,
+        isRunning: false,
+      });
+    }
   };
 
-  const handleComplete = () => {
-    stopFocus();
+  const handleComplete = async () => {
+    if (sharedTimer.sessionId && accumulatedSeconds > 0) {
+      const minutes = Math.floor(accumulatedSeconds / 60);
+      if (minutes > 0) {
+        await fetch(`/api/pomodoro/${sharedTimer.sessionId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            completedAt: new Date().toISOString(),
+            duration: minutes,
+          }),
+        });
+        window.dispatchEvent(new Event("pomodoro-complete"));
+      }
+    }
+    setSharedTimer({
+      isRunning: false,
+      timeLeft: 25 * 60,
+      sessionId: null,
+      phase: "work",
+    });
+    setSessionId(null);
+    setAccumulatedSeconds(0);
+    lastSaveTimeRef.current = 0;
     setShowRightNow(false);
-    // TODO: Mark task as complete
   };
 
   // ESC key handler
@@ -146,11 +232,11 @@ export function RightNowOverlay() {
               {/* Focus Timer */}
               <div className="text-center mb-6">
                 <div className="text-6xl font-bold mb-4 tabular-nums">
-                  {formatTime(timeLeft)}
+                  {formatTime(sharedTimer.timeLeft)}
                 </div>
 
                 <div className="flex justify-center gap-3">
-                  {!focusTimer.active ? (
+                  {!sharedTimer.isRunning ? (
                     <button
                       onClick={handleStart}
                       className="flex items-center gap-2 px-6 py-3 rounded-[var(--radius-lg)] bg-[hsl(var(--accent))] text-white font-medium hover:opacity-90 transition-opacity"
@@ -161,7 +247,7 @@ export function RightNowOverlay() {
                   ) : (
                     <>
                       <button
-                        onClick={stopFocus}
+                        onClick={handleStart}
                         className="flex items-center gap-2 px-6 py-3 rounded-[var(--radius-lg)] surface-2 font-medium hover:surface-3 transition-all"
                       >
                         <Pause className="h-5 w-5" />

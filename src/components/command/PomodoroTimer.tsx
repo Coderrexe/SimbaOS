@@ -5,6 +5,7 @@ import { Panel } from "./Panel";
 import { GlowBadge } from "./GlowBadge";
 import { Play, Pause, RotateCcw, Timer, Coffee, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useCommand } from "@/lib/command-context";
 
 type TimerMode = "pomodoro" | "elapsed";
 type PomodoroPhase = "work" | "break";
@@ -17,6 +18,7 @@ const WORK_DURATION = 25 * 60;
 const BREAK_DURATION = 5 * 60;
 
 export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
+  const { sharedTimer, setSharedTimer } = useCommand();
   const startSoundRef = React.useRef<HTMLAudioElement | null>(null);
   const endSoundRef = React.useRef<HTMLAudioElement | null>(null);
 
@@ -31,26 +33,48 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
   }, []);
 
   const [mode, setMode] = React.useState<TimerMode>("pomodoro");
-  const [phase, setPhase] = React.useState<PomodoroPhase>("work");
-  const [timeLeft, setTimeLeft] = React.useState(WORK_DURATION);
+  const [phase, setPhase] = React.useState<PomodoroPhase>(sharedTimer.phase);
+  const [timeLeft, setTimeLeft] = React.useState(sharedTimer.timeLeft);
   const [elapsedTime, setElapsedTime] = React.useState(0);
-  const [isRunning, setIsRunning] = React.useState(false);
-  const [sessionId, setSessionId] = React.useState<string | null>(null);
+  const [isRunning, setIsRunning] = React.useState(sharedTimer.isRunning);
+  const [sessionId, setSessionId] = React.useState<string | null>(
+    sharedTimer.sessionId,
+  );
   const [accumulatedSeconds, setAccumulatedSeconds] = React.useState(0);
   const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
   const autoSaveRef = React.useRef<NodeJS.Timeout | null>(null);
   const lastSaveTimeRef = React.useRef(0);
+
+  // Sync with shared timer state (incoming changes from RightNow overlay)
+  React.useEffect(() => {
+    setIsRunning(sharedTimer.isRunning);
+    setTimeLeft(sharedTimer.timeLeft);
+    setSessionId(sharedTimer.sessionId);
+    setPhase(sharedTimer.phase);
+  }, [sharedTimer]);
+
+  // Sync local timer state to shared context (outgoing changes to RightNow overlay)
+  React.useEffect(() => {
+    if (mode === "pomodoro") {
+      setSharedTimer({
+        isRunning,
+        timeLeft,
+        sessionId,
+        phase,
+      });
+    }
+  }, [isRunning, timeLeft, sessionId, phase, mode, setSharedTimer]);
 
   React.useEffect(() => {
     if (isRunning) {
       intervalRef.current = setInterval(() => {
         if (mode === "pomodoro") {
           setTimeLeft((prev) => {
-            if (prev <= 1) {
+            const newTime = prev <= 1 ? 0 : prev - 1;
+            if (newTime === 0) {
               handleTimerComplete();
-              return 0;
             }
-            return prev - 1;
+            return newTime;
           });
           setAccumulatedSeconds((prev) => prev + 1);
         } else {
@@ -195,8 +219,15 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
       }
     }
 
+    const newTimeLeft =
+      mode === "pomodoro"
+        ? phase === "work"
+          ? WORK_DURATION
+          : BREAK_DURATION
+        : 0;
+
     if (mode === "pomodoro") {
-      setTimeLeft(phase === "work" ? WORK_DURATION : BREAK_DURATION);
+      setTimeLeft(newTimeLeft);
     } else {
       setElapsedTime(0);
     }
