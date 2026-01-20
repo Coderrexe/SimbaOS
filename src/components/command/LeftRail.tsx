@@ -16,10 +16,13 @@ import {
   LogOut,
   X,
   StickyNote,
+  Sun,
+  Moon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { useCommand } from "@/lib/command-context";
 
 const navItems = [
   { icon: Zap, label: "Command", href: "/command" },
@@ -39,6 +42,7 @@ export function LeftRail() {
   const [showSignOutConfirm, setShowSignOutConfirm] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const pathname = usePathname();
+  const { theme, setTheme } = useCommand();
 
   const handleSignOut = () => {
     signOut({ callbackUrl: "/auth/signin" });
@@ -259,8 +263,35 @@ export function LeftRail() {
           })}
         </nav>
 
-        {/* Sign Out Button */}
-        <div className="p-2 border-t border-[hsl(var(--border))]">
+        {/* Theme Toggle & Sign Out */}
+        <div className="p-2 border-t border-[hsl(var(--border))] space-y-1">
+          {/* Theme Toggle Button */}
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className={cn(
+              "w-full flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius)] transition-all",
+              "hover:bg-[hsl(var(--surface2))]",
+            )}
+          >
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5 flex-shrink-0" />
+            ) : (
+              <Moon className="h-5 w-5 flex-shrink-0" />
+            )}
+            <motion.span
+              initial={false}
+              animate={{
+                opacity: expanded ? 1 : 0,
+                width: expanded ? "auto" : 0,
+              }}
+              transition={{ duration: 0.15 }}
+              className="text-sm font-medium whitespace-nowrap overflow-hidden"
+            >
+              {theme === "dark" ? "Light Mode" : "Dark Mode"}
+            </motion.span>
+          </button>
+
+          {/* Sign Out Button */}
           <button
             onClick={() => setShowSignOutConfirm(true)}
             className={cn(

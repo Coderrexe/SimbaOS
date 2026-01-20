@@ -10,6 +10,7 @@ import {
 } from "react";
 
 export type Mode = "plan" | "execute" | "reflect";
+export type Theme = "light" | "dark";
 
 export interface Selection {
   type: "task" | "project" | "goal" | "habit" | "person" | null;
@@ -19,6 +20,8 @@ export interface Selection {
 interface CommandContextValue {
   mode: Mode;
   setMode: (mode: Mode) => void;
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
   selection: Selection;
   setSelection: (selection: Selection) => void;
   showRightNow: boolean;
@@ -52,6 +55,7 @@ const CommandContext = createContext<CommandContextValue | undefined>(
 
 export function CommandProvider({ children }: { children: ReactNode }) {
   const [mode, setModeState] = useState<Mode>("plan");
+  const [theme, setThemeState] = useState<Theme>("dark");
   const [selection, setSelection] = useState<Selection>({
     type: null,
     id: null,
@@ -78,9 +82,31 @@ export function CommandProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Persist theme to localStorage and apply to document
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("simbaos-theme");
+    if (savedTheme && ["light", "dark"].includes(savedTheme)) {
+      setThemeState(savedTheme as Theme);
+      document.documentElement.classList.toggle("dark", savedTheme === "dark");
+    } else {
+      // Default to dark theme
+      document.documentElement.classList.add("dark");
+    }
+  }, []);
+
+  // Apply theme changes to document
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, [theme]);
+
   const setMode = useCallback((newMode: Mode) => {
     setModeState(newMode);
     localStorage.setItem("simbaos-mode", newMode);
+  }, []);
+
+  const setTheme = useCallback((newTheme: Theme) => {
+    setThemeState(newTheme);
+    localStorage.setItem("simbaos-theme", newTheme);
   }, []);
 
   const startFocus = useCallback((taskId: string, duration: number) => {
@@ -106,6 +132,8 @@ export function CommandProvider({ children }: { children: ReactNode }) {
       value={{
         mode,
         setMode,
+        theme,
+        setTheme,
         selection,
         setSelection,
         showRightNow,
